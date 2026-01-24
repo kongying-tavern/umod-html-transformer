@@ -1,0 +1,13 @@
+{
+  "name": "site.yuanshen.htmltransformer",
+  "version": "1.0.0",
+  "displayName": "HTML Transformer",
+  "description": "A pure C# HTML transformation library. No Unity dependencies. Use via UPM.",
+  "author": {
+    "name": "Kongying Tavern",
+    "url": "https://yuanshen.site"
+  },
+  "unity": "2021.3",
+  "license": "MIT",
+  "keywords": ["html", "transform", "parser", "pure-csharp", "no-dll"]
+}
