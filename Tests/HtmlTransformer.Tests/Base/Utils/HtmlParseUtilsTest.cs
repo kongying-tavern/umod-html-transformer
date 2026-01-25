@@ -79,5 +79,33 @@ namespace HtmlTransformer.Tests.Base.Utils
             Assert.Equal(expected, result);
         }
         #endregion
+
+        #region SizeToNumber
+        public static readonly TheoryData<string, string, string> SizeToNumber_Data =
+            new TheoryData<string, string, string>
+            {
+                {"Empty Input", "", ""},
+                {"Blank Input", "  \n  ", ""},
+                {"Invalid Number", "invalid abc def", ""},
+                {"Invalid with Unit", "12px", ""},
+                {"Invalid with Mixed Values", "12px 20px", ""},
+                {"Float Value", "12.2", ""},
+                {"Negative Value", "-2", "-2"},
+                {"Zero Value", "0", "0"},
+                {"Valid Value", "20", "20"},
+            };
+
+        [Theory]
+        [MemberData(nameof(SizeToNumber_Data))]
+        public void Test_SizeToNumber(string description, string input, string expected)
+        {
+            const string blueColor = "\u001b[34m";
+            const string resetColor = "\u001b[0m";
+            Console.WriteLine($"{blueColor}{nameof(HtmlParseUtils)}.{nameof(HtmlParseUtils.SizeToNumber)}: {description}{resetColor}");
+
+            var result = HtmlParseUtils.SizeToNumber(input);
+            Assert.Equal(expected, result);
+        }
+        #endregion
     }
 }
