@@ -34,89 +34,134 @@ namespace HtmlTransformer.Core.Base.Utils
             colorStr = colorStr ?? "";
             colorStr = colorStr.Trim();
 
-            // #RGB
-            Match match = Regex.Match(colorStr, @"^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$", RegexOptions.IgnoreCase);
-            if (match.Success)
+            var patterns = new[]
             {
-                string r = match.Groups[1].Value;
-                string g = match.Groups[2].Value;
-                string b = match.Groups[3].Value;
-                int red = Convert.ToInt32(r + r, 16);
-                int green = Convert.ToInt32(g + g, 16);
-                int blue = Convert.ToInt32(b + b, 16);
-                return $"#{red:X2}{green:X2}{blue:X2}";
-            }
+                // #RGB
+                new {
+                    Pattern = @"^#([0-9a-f])([0-9a-f])([0-9a-f])$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        string r = match.Groups[1].Value;
+                        string g = match.Groups[2].Value;
+                        string b = match.Groups[3].Value;
+                        byte red = Convert.ToByte(r + r, 16);
+                        byte green = Convert.ToByte(g + g, 16);
+                        byte blue = Convert.ToByte(b + b, 16);
+                        return $"#{red:X2}{green:X2}{blue:X2}";
+                    })
+                },
+                // #RGBA
+                new {
+                    Pattern = @"^#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f])$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        string r = match.Groups[1].Value;
+                        string g = match.Groups[2].Value;
+                        string b = match.Groups[3].Value;
+                        string a = match.Groups[4].Value;
+                        int red = Convert.ToByte(r + r, 16);
+                        int green = Convert.ToByte(g + g, 16);
+                        int blue = Convert.ToByte(b + b, 16);
+                        int alpha = Convert.ToByte(a + a, 16);
+                        return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
+                    })
+                },
+                // #RRGGBB
+                new {
+                    Pattern = @"^#([0-9a-f]{6})$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        string hexColor = match.Groups[1].Value;
+                        int colorInt = Convert.ToInt32(hexColor, 16);
+                        Color color = Color.FromArgb(colorInt);
+                        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+                    })
+                },
+                // #RRGGBBAA
+                new {
+                    Pattern = @"^#([0-9a-f]{6})([0-9a-f]{2})$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        string hexColor = match.Groups[1].Value;
+                        string alphaStr = match.Groups[2].Value;
+                        int colorInt = Convert.ToInt32(hexColor, 16);
+                        Color color = Color.FromArgb(colorInt);
+                        int alpha = Convert.ToByte(alphaStr, 16);
+                        return $"#{color.R:X2}{color.G:X2}{color.B:X2}{alpha:X2}";
+                    })
+                },
+                // rgb(R, G, B)
+                new {
+                    Pattern = @"^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        try
+                        {
+                            byte red = byte.Parse(match.Groups[1].Value);
+                            byte green = byte.Parse(match.Groups[2].Value);
+                            byte blue = byte.Parse(match.Groups[3].Value);
+                            return $"#{red:X2}{green:X2}{blue:X2}";
+                        }
+                        catch (Exception)
+                        {
+                            return "";
+                        }
+                    })
+                },
+                // rgba(R, G, B, A)
+                new {
+                    Pattern = @"^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([01]|0?\.\d+)\s*\)$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        try
+                        {
+                            byte red = byte.Parse(match.Groups[1].Value);
+                            byte green = byte.Parse(match.Groups[2].Value);
+                            byte blue = byte.Parse(match.Groups[3].Value);
+                            double alphaDouble = double.Parse(match.Groups[4].Value);
+                            byte alpha = Convert.ToByte((int)(alphaDouble * 255));
+                            return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
+                        }
+                        catch (Exception)
+                        {
+                            return "";
+                        }
+                    })
+                },
+                // rgba(R, G, B, A%)
+                new {
+                    Pattern = @"^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+|\d+\.\d+|.\d+)%\s*\)$",
+                    Handler = new Func<Match, string>(match =>
+                    {
+                        try
+                        {
+                            byte red = byte.Parse(match.Groups[1].Value);
+                            byte green = byte.Parse(match.Groups[2].Value);
+                            byte blue = byte.Parse(match.Groups[3].Value);
+                            double alphaDouble = double.Parse(match.Groups[4].Value);
+                            byte alpha = Convert.ToByte((int)(alphaDouble * 255 / 100));
+                            return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
+                        }
+                        catch (Exception)
+                        {
+                            return "";
+                        }
+                    })
+                },
+            };
 
-            // #RGBA
-            match = Regex.Match(colorStr, @"^#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$", RegexOptions.IgnoreCase);
-            if (match.Success)
+            foreach (var patternConf in patterns)
             {
-                string r = match.Groups[1].Value;
-                string g = match.Groups[2].Value;
-                string b = match.Groups[3].Value;
-                string a = match.Groups[4].Value;
-                int red = Convert.ToInt32(r + r, 16);
-                int green = Convert.ToInt32(g + g, 16);
-                int blue = Convert.ToInt32(b + b, 16);
-                int alpha = Convert.ToInt32(a + a, 16);
-                return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
-            }
-
-            // #RRGGBB
-            match = Regex.Match(colorStr, @"^#([0-9a-fA-F]{6})$", RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                string hexColor = match.Groups[1].Value;
-                int colorInt = Convert.ToInt32(hexColor, 16);
-                Color color = Color.FromArgb(colorInt);
-                return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
-            }
-
-            // #RRGGBBAA
-            match = Regex.Match(colorStr, @"^#([0-9a-fA-F]{6})([0-9a-fA-F]{2})$", RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                string hexColor = match.Groups[1].Value;
-                string alphaStr = match.Groups[2].Value;
-                int colorInt = Convert.ToInt32(hexColor, 16);
-                Color color = Color.FromArgb(colorInt);
-                int alpha = Convert.ToInt32(alphaStr, 16);
-                return $"#{color.R:X2}{color.G:X2}{color.B:X2}{alpha:X2}";
-            }
-
-            // rgb(R, G, B)
-            match = Regex.Match(colorStr, @"^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$", RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                try
+                if (string.IsNullOrEmpty(patternConf.Pattern) || patternConf.Handler == null)
                 {
-                    int red = int.Parse(match.Groups[1].Value);
-                    int green = int.Parse(match.Groups[2].Value);
-                    int blue = int.Parse(match.Groups[3].Value);
-                    return $"#{red:X2}{green:X2}{blue:X2}";
+                    continue;
                 }
-                catch (Exception)
-                {
-                    return "";
-                }
-            }
 
-            // rgba(R, G, B, A)
-            match = Regex.Match(colorStr, @"^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([01]|0?\.\d+)\s*\)$", RegexOptions.IgnoreCase);
-            if (match.Success)
-            {
-                try
+                var pattern = new Regex(patternConf.Pattern, RegexOptions.IgnoreCase);
+                var match = pattern.Match(colorStr);
+                if (match.Success)
                 {
-                    int red = int.Parse(match.Groups[1].Value);
-                    int green = int.Parse(match.Groups[2].Value);
-                    int blue = int.Parse(match.Groups[3].Value);
-                    double alphaDouble = double.Parse(match.Groups[4].Value);
-                    int alpha = (int)(alphaDouble * 255) & 0xFF;
-                    return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
-                }
-                catch (Exception)
-                {
-                    return "";
+                    return patternConf.Handler(match);
                 }
             }
 
