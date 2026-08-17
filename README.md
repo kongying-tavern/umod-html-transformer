@@ -6,10 +6,14 @@
 
 ## 特性
 
-- 纯 C#，无 Unity / DLL 依赖，源码编译
+- 纯 C#，无 Unity / DLL 依赖，源码编译（内置 **原版** HtmlAgilityPack v1.12.4）
 - 单一内容源、多渲染目标
 - 管道式转换架构，转换器 / 插件可插拔
 - 底座与具体转换器分离：转换目标由所用 Transformer 决定，与内容源无关
+
+## 开发约定
+
+- `Runtime/HtmlAgilityPack.Mod` 是 **vendored 原版** HtmlAgilityPack v1.12.4（目录后缀 `Mod` 是 Module 之意），**禁止改动其源码**。需要调整解析行为时，在应用层运行时配置实现（如基座对 `HtmlNode.ElementsFlags` 的钉定）。
 
 ## 快速开始
 
