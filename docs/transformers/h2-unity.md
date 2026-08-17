@@ -82,8 +82,8 @@ string richText = H2UnityTransformer.Transform(html);
 - **输入**：`<a href="URL">内容</a>`（Normalize 后已变为 `link`）
 - **输出**：`<link=URL>内容</link>`
 - **规则**：
-  - `href` 非空 → 写入 `collval`；`href` 缺失或为空 → 解包；
-  - 清除除 `href` 外的全部属性；
+  - `href` 非空 → 写入 `collval`；`href` 缺失、为空或全空白 → 解包；
+  - 清除除 `href` 外的全部属性（含 `onclick`/`target` 等危险或非白名单属性）；
   - 内容保留；
   - `link` 是普通容器，空内容输出完整闭合标签（`<link=u></link>`）；
   - `<a>` 不能嵌套 `<a>`（HAP 隐式闭合规则，同 HTML 规范），嵌套 `a` 会摊平为兄弟节点。
