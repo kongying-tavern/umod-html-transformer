@@ -74,6 +74,10 @@ namespace HtmlTransformer.Core.Base.Config
                 if (node.NodeType == HtmlNodeType.Document)
                     continue;
 
+                // Skip text nodes; text content should always be preserved
+                if (node.NodeType == HtmlNodeType.Text)
+                    continue;
+
                 if (!_allowedTags.ContainsKey(node.Name.ToLower()))
                 {
                     // If tag is not allowed, remove it but preserve its children (if any)
