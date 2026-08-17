@@ -109,3 +109,7 @@ string richText = H2UnityTransformer.Transform(html);
 - **输入**：`<br>`
 - **输出**：`\n`
 - **规则**：替换为单个换行文本节点，无内容包袱。
+
+## 测试
+
+回归测试的约定、嵌套代表类别与用例分组见 [H2UnityTransformer 测试说明](h2-unity-testing.md)。
