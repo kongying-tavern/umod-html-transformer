@@ -17,7 +17,7 @@ string richText = H2UnityTransformer.Transform(html);
 | 阶段 | 配置 |
 |------|------|
 | Load | 预处理器移除所有 `\r` / `\n` |
-| Sanitize | 白名单：`p br b strong i em u size(style) color(style) a(href) link(href) ruby r rt` |
+| Sanitize | 白名单（每个标签都声明解析类型）：`p br b strong i em u size(style) color(style) a(href) link(href) ruby r rt`；其中 `br=ElementTypeVoid`，其余为 `ElementTypeNormal` |
 | Normalize | `strong→b`、`em→i`、`a→link`、`ruby→r` |
 | Transform | 依次执行：`r` `color` `size` `a` `p` `br` |
 | Finalize | ① `collval="值"` → `=值`；② HTML 实体反转义（`&amp;`→`&` 等）；③ 移除末尾换行 |
@@ -36,7 +36,7 @@ string richText = H2UnityTransformer.Transform(html);
 | `<color style="--color: #abc">x</color>` | `<color=#AABBCC>x</color>` |
 | `<size style="--size: 20">x</size>` | `<size=20>x</size>` |
 | `<a href="u">x</a>` | `<link=u>x</link>` |
-| `<link href="u">x</link>` | `<link=u>x</link>`（直接输入 `<link>` 时无闭合标签，见 AExtension 注） |
+| `<link href="u">x</link>` | `<link=u>x</link>` |
 | `<r>主<rt>注</rt></r>` | `<r>主<rt>注</rt></r>` |
 | `<ruby>主<rt>注</rt></ruby>` | `<r>主<rt>注</rt></r>` |
 | `<p>x</p>` | `x\n`（结尾时去掉换行） |
@@ -84,9 +84,9 @@ string richText = H2UnityTransformer.Transform(html);
 - **规则**：
   - `href` 非空 → 写入 `collval`；`href` 缺失或为空 → 解包；
   - 清除除 `href` 外的全部属性；
-  - 内容保留。
-
-> **已知差异（HAP void 标签行为）**：直接输入 `<link href="u">x</link>` 时，输出为 `<link=u>x`（`link` 被 HAP 视为 void 元素，序列化时不输出闭合标签，仅影响到以 `<a>` 形式输入的等效内容无此问题）。
+  - 内容保留；
+  - `link` 是普通容器，空内容输出完整闭合标签（`<link=u></link>`）；
+  - `<a>` 不能嵌套 `<a>`（HAP 隐式闭合规则，同 HTML 规范），嵌套 `a` 会摊平为兄弟节点。
 
 ### RubyExtension —— 注音（ruby）
 
@@ -108,7 +108,7 @@ string richText = H2UnityTransformer.Transform(html);
 
 - **输入**：`<br>`
 - **输出**：`\n`
-- **规则**：替换为单个换行文本节点，无内容包袱。
+- **规则**：替换为单个换行文本节点，无内容包袱；`br` 声明为 `ElementTypeVoid`（`<br>` 自闭合，不补 `</br>`）。
 
 ## 测试
 

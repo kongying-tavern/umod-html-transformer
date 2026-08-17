@@ -36,11 +36,27 @@ HTML ──►│ Load ─► Sanitize ─► Normalize ─► Transform ─►�
 
 规则（`SanitizeConfig`）：
 
-- `AddTag("div", "class", "style")`：允许指定属性；未列出的属性被移除；
-- `AddTag("div", ":all")`：不进行属性过滤；
-- `AddTag("div")`：过滤掉所有属性；
+- `AddTag(tag, type, "class", "style")`：声明标签的**解析类型**并允许指定属性；未列出的属性被移除；
+- `AddTag(tag, type, ":all")`：不进行属性过滤；
+- `AddTag(tag, type)`：过滤掉所有属性；
+- `AddTag` 的第二参数（解析类型）原则上应省略，用 `SanitizeConfig` 提供的语义化常量（见下表）或 `HtmlElementFlag` 组合值显式声明；类型会同步写入 `HtmlNode.ElementsFlags`，配置须在首次解析前完成；
+- `ClearTagFlags()`：清空 `HtmlNode.ElementsFlags` 全部预置（所有标签回落普通容器），须在首次解析前调用；
+- `ClearTagFlags(tag)`：移除单个标签的解析类型，使其回落普通容器，须在首次解析前调用；
 - **白名单之外的标签被「解包」**：标签删除但子节点保留（文本不会丢失）；
 - **文本节点永远保留**，不会因净化被清空。
+
+解析类型（`HtmlElementFlag`，[Flags] 可组合）：
+
+| 含义 | `SanitizeConfig` 语义常量 | 原始值 |
+|------|---------------------------|--------|
+| 普通容器：可有内容与子节点 | `ElementTypeNormal` | `0` |
+| 空元素（void）：只能空内容 | `ElementTypeEmpty` | `HtmlElementFlag.Empty` |
+| 闭合标签等价于开标签 | `ElementTypeClosed` | `HtmlElementFlag.Closed` |
+| void 自闭合（如 `<br>`） | `ElementTypeVoid` | `Empty \| Closed` |
+| CData：内容原样保留，不解析为子标签 | `ElementTypeCData` | `HtmlElementFlag.CData` |
+| 可重叠（历史语义，如 form/a） | `ElementTypeCanOverlap` | `HtmlElementFlag.CanOverlap` |
+
+写入 `HtmlNode.ElementsFlags` 存在**并发竞态**与**单进程多套声明互斥**两个已知缺陷，详见文末 [已知问题](#已知问题known-issue)。
 
 ### 3. Normalize（标签归一化）
 
@@ -112,7 +128,7 @@ public class H2XxxTransformer : HtmlBaseTransformer
     public override void Configure()
     {
         this.ConfigureLoad().RegisterPreprocessor(html => /* 预处理 */);
-        this.ConfigureSanitize().AddTag(...);
+        this.ConfigureSanitize().AddTag("xxx", SanitizeConfig.ElementTypeNormal);
         this.ConfigureNormalize().AddTagMapping(...);
         this.ConfigureTransform()
             .RegisterExtension("xxx", new XxxExtension())
@@ -124,3 +140,12 @@ public class H2XxxTransformer : HtmlBaseTransformer
 ```
 
 新转换器放在独立命名空间（如 `HtmlTransformer.Core.Xxx`），文档在 `docs/transformers/` 下新建对应文件。
+
+## 已知问题（Known Issue）
+
+`HtmlNode.ElementsFlags` 是 HAP 的全局可变字典，本库通过 `AddTag(tag, type)` 与 `ClearTagFlags()` 在运行时改写它（这是「不改 HAP 源码」方案的代价），存在两个已知缺陷：
+
+- **不防并发**：HAP 内部对 `ElementsFlags` 的读取不加锁，配置阶段的写入若与解析并发即竞态。规避：配置集中在进程启动、首个解析之前一次性完成，之后不再写。
+- **全局限一**：全局只有一张表，同一进程同时运行多套「解析类型声明」不同的转换器会互相覆盖。规避：进程内只维护一套解析类型声明。
+
+`static` 帮不上忙——它只锁住字段引用，锁不住字典内容的增改。

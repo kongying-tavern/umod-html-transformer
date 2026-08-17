@@ -1,5 +1,6 @@
 using HtmlAgilityPack;
 using HtmlTransformer.Core.Base;
+using HtmlTransformer.Core.Base.Config;
 using HtmlTransformer.Core.Unity.Extensions;
 using System.Text.RegularExpressions;
 
@@ -21,20 +22,20 @@ namespace HtmlTransformer.Core.Unity
                     return Regex.Replace(html, @"[\r\n]", "");
                 });
             this.ConfigureSanitize()
-                .AddTag("p")
-                .AddTag("br")
-                .AddTag("b")
-                .AddTag("strong")
-                .AddTag("i")
-                .AddTag("em")
-                .AddTag("u")
-                .AddTag("size", "style")
-                .AddTag("color", "style")
-                .AddTag("a", "href")
-                .AddTag("link", "href")
-                .AddTag("ruby")
-                .AddTag("r")
-                .AddTag("rt");
+                .AddTag("p", SanitizeConfig.ElementTypeNormal)
+                .AddTag("br", SanitizeConfig.ElementTypeVoid)
+                .AddTag("b", SanitizeConfig.ElementTypeNormal)
+                .AddTag("strong", SanitizeConfig.ElementTypeNormal)
+                .AddTag("i", SanitizeConfig.ElementTypeNormal)
+                .AddTag("em", SanitizeConfig.ElementTypeNormal)
+                .AddTag("u", SanitizeConfig.ElementTypeNormal)
+                .AddTag("size", SanitizeConfig.ElementTypeNormal, "style")
+                .AddTag("color", SanitizeConfig.ElementTypeNormal, "style")
+                .AddTag("a", SanitizeConfig.ElementTypeNormal, "href")
+                .AddTag("link", SanitizeConfig.ElementTypeNormal, "href")
+                .AddTag("ruby", SanitizeConfig.ElementTypeNormal)
+                .AddTag("r", SanitizeConfig.ElementTypeNormal)
+                .AddTag("rt", SanitizeConfig.ElementTypeNormal);
             this.ConfigureNormalize()
                 .AddTagMapping("b", "strong")
                 .AddTagMapping("i", "em")
