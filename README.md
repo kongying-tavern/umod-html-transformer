@@ -25,5 +25,6 @@ string richText = H2UnityTransformer.Transform(html);
 ## 文档
 
 - [底座管线](docs/base-pipeline.md)：通用转换机制、配置、插件接口
+- [插件与 DI 设计](docs/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
 - [H2UnityTransformer](docs/transformers/h2-unity.md)：目前内置的 Unity 富文本转换器
 - 新转换器的文档统一追加在 `docs/transformers/` 下
