@@ -15,7 +15,7 @@ namespace HtmlTransformer.Core.Base.DI
 
         private void Load(DataConfig dataConfig, OutputConfig outputConfig)
         {
-            string html = dataConfig.RawHtml ?? "";
+            string html = dataConfig.DocHtml ?? "";
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             dataConfig.Doc = doc;
