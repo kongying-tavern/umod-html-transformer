@@ -1,3 +1,4 @@
+using HtmlAgilityPack;
 using HtmlTransformer.Core.Base;
 using HtmlTransformer.Core.Unity.Extensions;
 using System.Text.RegularExpressions;
@@ -54,6 +55,9 @@ namespace HtmlTransformer.Core.Unity
                     // Updated regex pattern to match collval attributes
                     var valuePattern = @"\s+collval\s*=\s*""\s*([^\s""]+)\s*""";
                     html = Regex.Replace(html, valuePattern, "=$1");
+
+                    // Transform HTML entities
+                    html = HtmlEntity.DeEntitize(html);
 
                     // Remove trailing new line due to `p` and `br`
                     if (html.EndsWith("\n"))
