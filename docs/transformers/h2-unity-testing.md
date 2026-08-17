@@ -28,13 +28,10 @@
 
 ## 当前覆盖
 
-**已写**：
-
 - `H2UnityBaseRuleTest`：管线级底座规则（预处理去换行、实体、非法标签解包、归一化、换行输出）
 - `H2UnityColorExtensionTest`：Color 插件 25 例
 - `H2UnitySizeExtensionTest`：Size 插件 25 例
 - `H2UnityAExtensionTest`：链接插件 19 例
 - `H2UnityRubyExtensionTest`：注音插件 17 例
 - `H2UnityPExtensionTest`：段落插件 13 例
-
-**待补**（按 Color 的模式逐插件补齐）：`BrExtension`。
+- `H2UnityBrExtensionTest`：换行插件 13 例
