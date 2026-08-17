@@ -18,6 +18,11 @@ namespace HtmlTransformer.Core.Base.DI
                 // Get inner HTML of body (excluding the body tags themselves)
                 html = string.Concat(bodyNode.ChildNodes.Select(n => n.OuterHtml));
             }
+            else
+            {
+                // No body element (e.g. fragment loaded without html/body wrapper)
+                html = string.Concat(doc.DocumentNode.ChildNodes.Select(n => n.OuterHtml));
+            }
 
             // After Hook
             html = finalizeConfig.InvokeAfterFinalizeHook(html);
