@@ -26,9 +26,17 @@
 | 内容保留 | 文本、白名单子标签、空内容、同级嵌套各自转换 |
 | 容错与组合 | 多属性共存、空格容错、大小写、与代表类别嵌套 |
 
+## 空白字符语义
+
+空白的折叠是**渲染层**行为（CSS `white-space` / Unity TMP 富文本渲染），管线不参与；Base 通则见[测试规范](../testing.md)。下面是 H2Unity 由其 `Configure()` 声明决定的特有边界，由 `H2UnityBaseRuleTest` 的「空白字符处理」region 锁定：
+
+- `&nbsp;`（可多个）经 Finalize 反转义为 U+00A0——渲染层不折叠它，作为「间隔一个空格」的显式空白；
+- Load 预处理器移除源码全部 `\r\n`，故文本内无源码换行；**结构换行仅由 br / p 产出**；
+- 由此推论：普通空白绝不产生换行（多空格 ≠ 换行）。
+
 ## 当前覆盖
 
-- `H2UnityBaseRuleTest`：管线级底座规则（预处理去换行、实体、非法标签解包、归一化、换行输出）
+- `H2UnityBaseRuleTest`：管线级底座规则（预处理去换行、实体、非法标签解包、归一化、空白保真、换行输出）
 - `H2UnityColorExtensionTest`：Color 插件 25 例
 - `H2UnitySizeExtensionTest`：Size 插件 25 例
 - `H2UnityAExtensionTest`：链接插件 19 例

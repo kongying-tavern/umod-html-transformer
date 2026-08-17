@@ -101,6 +101,36 @@ namespace HtmlTransformer.Tests.Unity
 
         #endregion
 
+        #region 空白字符处理
+
+        // 分层说明：连续空白折叠成单空格是「渲染层」行为（CSS white-space / Unity TMP 富文本渲染），
+        // 解析层（HAP 与管线）按 HTML 规范原样保留文本节点空白。此处锁定管线「不折叠、不损失」的保真边界：
+        // 普通空格/tab 原样保留，&nbsp; 还原为不折叠的 U+00A0，结构换行仅由 br/p 产出。
+
+        public static readonly TheoryData<string, string, string> Whitespace_Data =
+            new TheoryData<string, string, string>
+            {
+                {"文本中多空格保留", "a  b", "a  b"},
+                {"文本首尾多空格保留", "  a  ", "  a  "},
+                {"文本中 tab 保留", "a\tb", "a\tb"},
+                {"混合空白保留", "a \t b", "a \t b"},
+                {"连续空行移除合并", "a\n\nb", "ab"},
+                {"p 内多空格不影响解包", "<p>a  b</p>", "a  b"},
+                {"多个 nbsp 还原为不合并空白", "a&nbsp;&nbsp;b", "a\u00a0\u00a0b"},
+                {"属性内换行被移除", "<color style=\"\n--color: #abc\n\">x</color>", "<color=#AABBCC>x</color>"},
+                {"结构内换行剔除不影响 ruby", "<r>\n主\n<rt>\n注\n</rt>\n</r>", "<r>主<rt>注</rt></r>"},
+                {"多空格不产生换行（仅 br/p）", "<p>a  b<br>c</p>", "a  b\nc"},
+            };
+
+        [Theory]
+        [MemberData(nameof(Whitespace_Data))]
+        public void Test_Whitespace(string description, string input, string expected)
+        {
+            AssertTransform(description, input, expected);
+        }
+
+        #endregion
+
         #region 换行输出
 
         public static readonly TheoryData<string, string, string> NewlineOutput_Data =
