@@ -80,7 +80,7 @@ namespace HtmlTransformer.Tests.Unity
 
         #endregion
 
-        #region Normalize 标签映射
+        #region Normalize 标签归一化
 
         public static readonly TheoryData<string, string, string> NormalizeMapping_Data =
             new TheoryData<string, string, string>

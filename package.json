@@ -1,7 +1,7 @@
 {
   "name": "site.yuanshen.htmltransformer",
   "version": "1.0.0",
-  "displayName": "HTML Transformer",
+  "displayName": "H2X HTML Transformer",
   "description": "A pure C# HTML transformation library. No Unity dependencies. Use via UPM.",
   "author": {
     "name": "Kongying Tavern",
