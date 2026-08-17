@@ -35,5 +35,6 @@
 - `H2UnitySizeExtensionTest`：Size 插件 25 例
 - `H2UnityAExtensionTest`：链接插件 19 例
 - `H2UnityRubyExtensionTest`：注音插件 17 例
+- `H2UnityPExtensionTest`：段落插件 13 例
 
-**待补**（按 Color 的模式逐插件补齐）：`PExtension`、`BrExtension`。
+**待补**（按 Color 的模式逐插件补齐）：`BrExtension`。
