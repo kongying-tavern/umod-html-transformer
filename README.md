@@ -34,6 +34,12 @@
 
   `--verify-no-changes` 只检查不改写；去掉该标志即实际执行格式化。
 
+- **发布（打 tag）**：版本号由 `package.json` 的 `version` 字段决定（semver）。正式发布打 **annotated tag**，命名固定 `v` 前缀 + 版本号（`v1.0.0`），与 UPM Git URL 的 `#v1.0.0` 锚一一对应，message 简述本版要点：
+
+  ```powershell
+  git tag -a v1.0.0 -m "v1.0.0: H2X HTML Transformer 首个正式版本"
+  ```
+
 ## 通过 UPM 使用（Unity）
 
 包根包含 `package.json`（名称 `site.yuanshen.htmltransformer`），最低 Unity **2021.3**，纯 C# 源码编译、无 DLL。三种安装方式：
