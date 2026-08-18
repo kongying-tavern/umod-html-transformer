@@ -8,11 +8,7 @@ namespace HtmlTransformer.Core.Unity
 {
     public class H2UnityTransformer : HtmlBaseTransformer
     {
-        public static string Transform(string html)
-        {
-            var runner = new H2UnityTransformer();
-            return runner.Process(html);
-        }
+        public static string Transform(string html) => new H2UnityTransformer().Process(html);
 
         public override void Configure()
         {

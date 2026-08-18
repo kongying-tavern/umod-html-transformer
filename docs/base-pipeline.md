@@ -120,26 +120,7 @@ public interface IExtensionInterface
 
 ## 编写一个新的转换器
 
-继承 `HtmlBaseTransformer`，在 `Configure()` 中声明管线策略：
-
-```csharp
-public class H2XxxTransformer : HtmlBaseTransformer
-{
-    public override void Configure()
-    {
-        this.ConfigureLoad().RegisterPreprocessor(html => /* 预处理 */);
-        this.ConfigureSanitize().AddTag("xxx", SanitizeConfig.ElementTypeNormal);
-        this.ConfigureNormalize().AddTagMapping(...);
-        this.ConfigureTransform()
-            .RegisterExtension("xxx", new XxxExtension())
-            .SetOrders("xxx");
-        this.ConfigureFinalize()
-            .RegisterAfterFinalizeHook(html => /* 后处理 */);
-    }
-}
-```
-
-新转换器放在独立命名空间（如 `HtmlTransformer.Core.Xxx`），文档在 `docs/transformers/` 下新建对应文件。
+从零编写一个新转换器（入口约定、`Configure()` 模板、插件、命名空间与文档约定）见 [编写一个新转换器](writing-a-transformer.md)。
 
 ## 已知问题（Known Issue）
 

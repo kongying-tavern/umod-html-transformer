@@ -36,19 +36,37 @@
 
 ## 快速开始
 
-```csharp
-using HtmlTransformer.Core.Unity;
+所有转换器继承底座 `HtmlBaseTransformer`，在 `Configure()` 中声明各阶段策略，并以静态 `Transform(html)` 直呼（内部一行代理到 `Process`）：
 
-string html = "<p><color style=\"--color: #abc\">r &amp; g</color></p>";
-string richText = H2UnityTransformer.Transform(html);
+```csharp
+using HtmlTransformer.Core.Base;
+
+public class MyTransformer : HtmlBaseTransformer
+{
+    public static string Transform(string html) => new MyTransformer().Process(html);
+
+    public override void Configure()
+    {
+        this.ConfigureSanitize().AddTag("xxx", SanitizeConfig.ElementTypeNormal);
+        this.ConfigureTransform()
+            .RegisterExtension("xxx", new XxxExtension())
+            .SetOrders("xxx");
+    }
+}
+
+string output = MyTransformer.Transform(html);
 ```
 
-完整示例、输入输出规则见 [H2UnityTransformer](docs/transformers/h2-unity.md)。
+完整编写步骤见 [编写一个新转换器](docs/writing-a-transformer.md)；底座管线机制见 [底座管线](docs/base-pipeline.md)。
+
+## 内置转换器
+
+- [H2UnityTransformer](docs/transformers/h2-unity.md)：Unity 富文本转换器
 
 ## 文档
 
 - [底座管线](docs/base-pipeline.md)：通用转换机制、配置、插件接口
+- [编写一个新转换器](docs/writing-a-transformer.md)：底座入门的完整步骤
 - [插件与 DI 设计](docs/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
-- [测试规范](docs/testing.md)：通用测试约定，含各转换器测试说明入口
-- [H2UnityTransformer](docs/transformers/h2-unity.md)：目前内置的 Unity 富文本转换器
-- 新转换器的文档统一追加在 `docs/transformers/` 下
+- [测试规范](docs/testing.md)：通用测试约定与运行方式
+- 各转换器的文档统一放在 `docs/transformers/` 下

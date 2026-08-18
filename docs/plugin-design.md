@@ -42,6 +42,8 @@ DI 侧没有字段、不缓存状态，依赖全部来自调用参数；`Configu
 - **DI 是无状态行为**：不含业务规则，只执行注入的配置，一套 DI 服务所有转换器；
 - **新增转换器零改动**：只继承 `HtmlBaseTransformer` + `Configure()` 堆配置，DI 与 Config 都不用动。
 
+各转换器如何编写（入口约定、`Configure()` 模板、命名空间与文档约定）见 [编写一个新转换器](writing-a-transformer.md)。
+
 ### DataConfig：阶段间传递
 
 | 字段 | 含义 |
