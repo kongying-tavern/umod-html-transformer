@@ -34,6 +34,40 @@
 
   `--verify-no-changes` 只检查不改写；去掉该标志即实际执行格式化。
 
+## 通过 UPM 使用（Unity）
+
+包根包含 `package.json`（名称 `site.yuanshen.htmltransformer`），最低 Unity **2021.3**，纯 C# 源码编译、无 DLL。三种安装方式：
+
+**方式一：Package Manager（推荐）**
+
+`Window > Package Manager > + > Add package by git URL…`，粘贴：
+
+```
+https://github.com/kongying-tavern/umod-html-transformer.git
+```
+
+需固定版本时追加 tag 锚（UPM 的 Git tag 强制 `v` 前缀）：
+
+```
+https://github.com/kongying-tavern/umod-html-transformer.git#v1.0.0
+```
+
+**方式二：本地磁盘**
+
+`+ > Add package from disk…`，选择仓库根目录（含 `package.json` 的文件夹）。
+
+**方式三：直接编辑 manifest**
+
+在 `Packages/manifest.json` 的 `dependencies` 中声明：
+
+```json
+"dependencies": {
+  "site.yuanshen.htmltransformer": "https://github.com/kongying-tavern/umod-html-transformer.git#v1.0.0"
+}
+```
+
+> 包为源码编译，Unity 导入后自动编译；改动源码会触发重新编译并同步进 `Library/PackageCache`。
+
 ## 快速开始
 
 所有转换器继承底座 `HtmlBaseTransformer`，在 `Configure()` 中声明各阶段策略，并以静态 `Transform(html)` 直呼（内部一行代理到 `Process`）：
