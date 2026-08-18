@@ -14,6 +14,25 @@
 ## 开发约定
 
 - `Runtime/HtmlAgilityPack.Mod` 是 **vendored 原版** HtmlAgilityPack v1.12.4（目录后缀 `Mod` 是 Module 之意），**禁止改动其源码**。需要调整解析行为时，在应用层运行时配置实现（如 `SanitizeConfig.AddTag(tag, type)` 对 `HtmlNode.ElementsFlags` 的写入）。
+- **运行测试**：测试工程不在解决方案（`.sln`）中，需直接指定测试项目路径：
+
+  ```powershell
+  dotnet test Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj
+  ```
+
+  按名称过滤（跑单个插件/规则测试类）：
+
+  ```powershell
+  dotnet test Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj --filter "FullyQualifiedName~H2UnityColorExtensionTest"
+  ```
+
+- **代码格式化**：使用 SDK 内置的 `dotnet format`（无需额外安装）。校验只针对本仓库代码，排除 vendored HAP：
+
+  ```powershell
+  dotnet format Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj --verify-no-changes --include "Runtime/HtmlTransformer.Core" --include "Tests/HtmlTransformer.Tests"
+  ```
+
+  `--verify-no-changes` 只检查不改写；去掉该标志即实际执行格式化。
 
 ## 快速开始
 
