@@ -13,23 +13,26 @@
 
 ## 开发约定
 
-- `Runtime/HtmlAgilityPack.Mod` 是 **vendored 原版** HtmlAgilityPack v1.12.4（目录后缀 `Mod` 是 Module 之意），**禁止改动其源码**。需要调整解析行为时，在应用层运行时配置实现（如 `SanitizeConfig.AddTag(tag, type)` 对 `HtmlNode.ElementsFlags` 的写入）。
-- **运行测试**：测试工程不在解决方案（`.sln`）中，需直接指定测试项目路径：
+- `Runtime/HtmlAgilityPack` 是 **vendored 原版** HtmlAgilityPack v1.12.4 的裁剪副本（仅保留参与编译的源码），**禁止改动其任何源码文件**；来源、保留清单与升级方式见 [VENDORED.md](Runtime/HtmlAgilityPack/VENDORED.md)。需要调整解析行为时，在应用层运行时配置实现（如 `SanitizeConfig.AddTag(tag, type)` 对 `HtmlNode.ElementsFlags` 的写入）。
+- **程序集结构**：包内两个源码程序集——`HtmlAgilityPack.Vendored`（vendor 底层解析）与 `HtmlTransformer`（底座 + 转换器），各自带 `.asmdef`，与 dotnet 工程的 `ProjectReference` 一一对应。dotnet 侧以 netstandard2.1 作兼容参考目标；消费项目为 .NET Standard 2.0 级别时同样适用（当前实现未使用任何 2.1-only API）。
+- **运行测试**：测试工程已在解决方案中，仓库根目录直接：
 
   ```powershell
-  dotnet test Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj
+  dotnet test
   ```
 
   按名称过滤（跑单个插件/规则测试类）：
 
   ```powershell
-  dotnet test Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj --filter "FullyQualifiedName~H2UnityColorExtensionTest"
+  dotnet test --filter "FullyQualifiedName~H2UnityColorExtensionTest"
   ```
+
+  > 测试统一跑在 net6.0（直接消费库的 netstandard2.0 资产）。net472 桌面 testhost 在部分环境无法启动，不作为默认目标；库仍以 net472 + netstandard2.0 双目标构建，后者用于在 dotnet 构建期暴露 Unity 不可用的 API。
 
 - **代码格式化**：使用 SDK 内置的 `dotnet format`（无需额外安装）。校验只针对本仓库代码，排除 vendored HAP：
 
   ```powershell
-  dotnet format Tests\HtmlTransformer.Tests\HtmlTransformer.Tests.csproj --verify-no-changes --include "Runtime/HtmlTransformer.Core" --include "Tests/HtmlTransformer.Tests"
+  dotnet format umod-html-transformer.sln --verify-no-changes --include "Runtime/HtmlTransformer" --include "DotnetTests~/HtmlTransformer.Tests"
   ```
 
   `--verify-no-changes` 只检查不改写；去掉该标志即实际执行格式化。
@@ -79,7 +82,7 @@ https://github.com/kongying-tavern/umod-html-transformer.git#v1.0.0
 所有转换器继承底座 `HtmlBaseTransformer`，在 `Configure()` 中声明各阶段策略，并以静态 `Transform(html)` 直呼（内部一行代理到 `Process`）：
 
 ```csharp
-using HtmlTransformer.Core.Base;
+using HtmlTransformer.Base;
 
 public class MyTransformer : HtmlBaseTransformer
 {
@@ -97,16 +100,16 @@ public class MyTransformer : HtmlBaseTransformer
 string output = MyTransformer.Transform(html);
 ```
 
-完整编写步骤见 [编写一个新转换器](docs/writing-a-transformer.md)；底座管线机制见 [底座管线](docs/base-pipeline.md)。
+完整编写步骤见 [编写一个新转换器](Documentation~/writing-a-transformer.md)；底座管线机制见 [底座管线](Documentation~/base-pipeline.md)。
 
 ## 内置转换器
 
-- [H2UnityTransformer](docs/transformers/h2-unity.md)：Unity 富文本转换器
+- [H2UnityTransformer](Documentation~/transformers/h2-unity.md)：Unity 富文本转换器
 
 ## 文档
 
-- [底座管线](docs/base-pipeline.md)：通用转换机制、配置、插件接口
-- [编写一个新转换器](docs/writing-a-transformer.md)：底座入门的完整步骤
-- [插件与 DI 设计](docs/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
-- [测试规范](docs/testing.md)：通用测试约定与运行方式
-- 各转换器的文档统一放在 `docs/transformers/` 下
+- [底座管线](Documentation~/base-pipeline.md)：通用转换机制、配置、插件接口
+- [编写一个新转换器](Documentation~/writing-a-transformer.md)：底座入门的完整步骤
+- [插件与 DI 设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
+- [测试规范](Documentation~/testing.md)：通用测试约定与运行方式
+- 各转换器的文档统一放在 `Documentation~/transformers/` 下
