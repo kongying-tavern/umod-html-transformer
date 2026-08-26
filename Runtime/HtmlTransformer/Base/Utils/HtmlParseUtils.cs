@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Text.RegularExpressions;
 
 namespace HtmlTransformer.Base.Utils
@@ -73,8 +72,10 @@ namespace HtmlTransformer.Base.Utils
                     {
                         string hexColor = match.Groups[1].Value;
                         int colorInt = Convert.ToInt32(hexColor, 16);
-                        Color color = Color.FromArgb(colorInt);
-                        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+                        byte red = (byte)((colorInt >> 16) & 0xFF);
+                        byte green = (byte)((colorInt >> 8) & 0xFF);
+                        byte blue = (byte)(colorInt & 0xFF);
+                        return $"#{red:X2}{green:X2}{blue:X2}";
                     })
                 },
                 // #RRGGBBAA
@@ -85,9 +86,11 @@ namespace HtmlTransformer.Base.Utils
                         string hexColor = match.Groups[1].Value;
                         string alphaStr = match.Groups[2].Value;
                         int colorInt = Convert.ToInt32(hexColor, 16);
-                        Color color = Color.FromArgb(colorInt);
                         int alpha = Convert.ToByte(alphaStr, 16);
-                        return $"#{color.R:X2}{color.G:X2}{color.B:X2}{alpha:X2}";
+                        byte red = (byte)((colorInt >> 16) & 0xFF);
+                        byte green = (byte)((colorInt >> 8) & 0xFF);
+                        byte blue = (byte)(colorInt & 0xFF);
+                        return $"#{red:X2}{green:X2}{blue:X2}{alpha:X2}";
                     })
                 },
                 // rgb(R, G, B)
