@@ -2,16 +2,22 @@
 
 纯 C# 的 HTML 转换库。无 Unity 依赖，通过 UPM 使用。
 
-本库只维护一份简化版的 HTML 内容。这份内容可以直接交给 HTML 渲染器使用，也可以通过 Transformer 转换成其他格式（如 Unity 富文本）给别的渲染器用，让不同渲染器呈现的样式与行为保持一致。
+这个库的作用是维护一套简化版的 HTML：它可以直接用于网页显示，也可以转换之后给其他场景显示。转换的目标是尽量保证显示和行为与网页版一致——只能是尽可能还原，不承诺完全相同。
 
 ## 特性
 
 - 纯 C#，无 Unity / DLL 依赖，源码编译（内置 **原版** HtmlAgilityPack v1.12.4）
-- 一份 HTML 内容，可以输出为多种渲染格式
+- 一套 HTML，既能直接用于网页，也能转换给其他显示场景
 - 管道式转换架构，转换器 / 插件可插拔
 - 底座与具体转换器分离：转换目标由所用 Transformer 决定，与内容源无关
 
 ## 开发约定
+
+### 定位：纯 C# 库，UPM 只是分发方式
+
+- 包里的代码只使用标准 .NET API，不引用任何 Unity 的类库（asmdef 已声明 `noEngineReferences`，误用 Unity API 会直接编译失败）；
+- 日常开发和测试全部在 dotnet 环境完成，不需要安装 Unity；
+- UPM 导入后由 Unity 编译同一份源码。所以每个程序集有两份工程描述：`.csproj` 给 dotnet 构建与测试用，`.asmdef` 给 Unity 编译用，它们指向的是同一批 `.cs` 文件。
 
 ### Vendored HtmlAgilityPack
 
@@ -32,7 +38,7 @@
 关于兼容参考目标：
 
 - dotnet 侧以 netstandard2.1 构建，用于在编译期暴露 Unity 不可用的 API（如 `System.Drawing`）
-- 消费项目为 .NET Standard 2.0 兼容级别时同样适用：当前实现未使用任何 2.1-only API
+- 使用本包的项目如果设置的是 .NET Standard 2.0 兼容级别，同样适用：当前实现没有用到任何 2.1 才有的 API
 
 ### 运行测试
 
@@ -50,8 +56,8 @@ dotnet test --filter "FullyQualifiedName~H2UnityColorExtensionTest"
 
 补充说明：
 
-- 测试统一跑在 net6.0，直接消费库的 netstandard2.1 资产
-- net472 桌面 testhost 在部分环境无法启动，不作为测试目标；库本身仍保留 net472 构建腿
+- 测试统一跑在 net6.0 上，直接引用库按 netstandard2.1 编译出的版本
+- .NET Framework 版本的自动化测试进程（testhost，负责运行单元测试的后台程序）在部分电脑上无法启动，所以不用它来跑测试；但库本身仍然同时面向 net472 和 netstandard2.1 两种目标框架编译
 - 测试类之间不并行运行，原因见 [测试规范](Documentation~/testing.md)
 
 ### 代码格式化
@@ -148,4 +154,5 @@ string output = MyTransformer.Transform(html);
 - [编写一个新转换器](Documentation~/writing-a-transformer.md)：底座入门的完整步骤
 - [插件与 DI 设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
 - [测试规范](Documentation~/testing.md)：通用测试约定与运行方式
+- [文档编写规范](Documentation~/documentation.md)：写文档时的语言与结构约定
 - 各转换器的文档统一放在 `Documentation~/transformers/` 下
