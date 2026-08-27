@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
-    <LangVersion>7.3</LangVersion>
     <Version>1.12.4</Version>
     <RootNamespace>HtmlAgilityPack</RootNamespace>
     <!-- 与上游 netstandard 目标一致的条件编译符号(HAP 源码只区分 NETSTANDARD 与旧框架) -->

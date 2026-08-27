@@ -4,7 +4,6 @@
     <!-- net6.0 直接消费库的 netstandard2.0 资产;
          net472 桌面 testhost 在部分环境无法启动,故测试统一跑在 CoreCLR 上 -->
     <TargetFramework>net6.0</TargetFramework>
-    <LangVersion>7.3</LangVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
