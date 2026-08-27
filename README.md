@@ -70,6 +70,17 @@ dotnet format umod-html-transformer.sln --verify-no-changes --include "Runtime/H
 
 `--verify-no-changes` 只检查不改写；去掉该标志即实际执行格式化。
 
+### .meta 文件
+
+本包要通过 UPM 分发，因此仓库必须携带所有资源的 `.meta` 文件（Unity 用它记录资源 GUID 与导入设置）。
+
+- 生成方式：运行 `Tool~/gen-meta.ps1`（Windows）或 `Tool~/gen-meta.sh`（macOS / Linux）。脚本只为缺失的文件生成 meta，已存在的一律保持不变，可以反复执行；
+- 首次批量生成已经离线完成；之后**每新增文件，跑一次脚本，并把新出现的 `.meta` 与该文件放进同一批提交**；
+- 不要把 `*.meta` 加入 `.gitignore`；
+- 离线生成的导入器块可能与 Unity 生成的略有差异：Unity 首次打开时会保留 GUID、只规范化其余字段，因此这种做法是安全的。
+
+三个以 `~` 结尾的目录——`Documentation~`、`DotnetTests~`、`Tool~`——不需要 `.meta`：Unity 导入器会跳过 `~` 目录（这正是这个后缀的用途），所以也不会为它们生成。
+
 ### 发布（打 tag）
 
 - 版本号由 `package.json` 的 `version` 字段决定（semver）

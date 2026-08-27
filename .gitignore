@@ -45,6 +45,7 @@ ScaffoldingReadMe.txt
 # 例外:UPM 约定以 ~ 结尾表示 Unity 不导入的目录(文档、非 Unity 测试),需要正常入库
 !Documentation~
 !DotnetTests~
+!Tool~
 CodeCoverage/
 
 # MSBuild Binary and Structured Log
