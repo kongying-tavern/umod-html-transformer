@@ -81,6 +81,16 @@ dotnet format umod-html-transformer.sln --verify-no-changes --include "Runtime/H
 
 三个以 `~` 结尾的目录——`Documentation~`、`DotnetTests~`、`Tool~`——不需要 `.meta`：Unity 导入器会跳过 `~` 目录（这正是这个后缀的用途），所以也不会为它们生成。
 
+### Unity 导入冒烟测试（发布前必做）
+
+发布前必须实际验证包能被 Unity 正常导入、编译。一键运行：
+
+```powershell
+pwsh -File Tool~/smoke-test.ps1
+```
+
+脚本自动建临时工程、注入本包、批处理导入编译，输出 PASS / FAIL。临时工程位置、Unity 版本探测与许可证注意项见 [Unity 导入冒烟测试](Documentation~/smoke-test.md)。
+
 ### 发布（打 tag）
 
 - 版本号由 `package.json` 的 `version` 字段决定（semver）
@@ -165,5 +175,6 @@ string output = MyTransformer.Transform(html);
 - [编写一个新转换器](Documentation~/writing-a-transformer.md)：底座入门的完整步骤
 - [插件与 DI 设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
 - [测试规范](Documentation~/testing.md)：通用测试约定与运行方式
+- [Unity 导入冒烟测试](Documentation~/smoke-test.md)：发布前的 Unity 导入验证（含许可证常见问题）
 - [文档编写规范](Documentation~/documentation.md)：写文档时的语言与结构约定
 - 各转换器的文档统一放在 `Documentation~/transformers/` 下
