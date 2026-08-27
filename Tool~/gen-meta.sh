@@ -31,7 +31,7 @@ while IFS= read -r f; do
     *.asmdef) if write_meta "$f" "$T_ASM"; then nas=$((nas+1)); fi ;;
     *)        if write_meta "$f" "$T_DEF"; then ndef=$((ndef+1)); fi ;;
   esac
-done < <(git ls-files | grep -v '~/')
+done < <(git ls-files | grep -v '~/' | grep -v '\.meta$')
 
 for d in "${!dirs[@]}"; do
   if write_meta "$d" "$T_FOLDER"; then nf=$((nf+1)); fi

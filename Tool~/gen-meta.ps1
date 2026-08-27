@@ -16,7 +16,7 @@ $T_CS     = "MonoImporter:`n  externalObjects: {}`n  serializedVersion: 2`n  def
 $T_ASM    = "AssemblyDefinitionImporter:`n  externalObjects: {}`n  mainObjectFileID: -1`n  userData: `n  assetBundleName: `n  assetBundleVariant: `n"
 $T_DEF    = "DefaultImporter:`n  externalObjects: {}`n  userData: `n  assetBundleName: `n  assetBundleVariant: `n"
 
-$files = git ls-files | Where-Object { $_ -notmatch '~/' -and (Split-Path $_ -Leaf) -notlike '.*' }
+$files = git ls-files | Where-Object { $_ -notmatch '~/' -and (Split-Path $_ -Leaf) -notlike '.*' -and (Split-Path $_ -Leaf) -notlike '*.meta' }
 $nFolders = 0; $nCs = 0; $nAsm = 0; $nDef = 0
 $dirs = @{}
 foreach ($f in $files) {
