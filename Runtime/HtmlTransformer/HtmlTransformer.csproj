@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <!-- 程序集名与 asmdef 名对齐(默认即 HtmlTransformer,显式声明防漂移) -->
+    <AssemblyName>HtmlTransformer</AssemblyName>
     <Version>1.0.0</Version>
     <!-- netstandard 目标用于在 dotnet 构建期暴露 Unity 不可用的 API(如 System.Drawing) -->
     <DefineConstants Condition="'$(TargetFramework)' == 'netstandard2.1'">$(DefineConstants);NETSTANDARD</DefineConstants>

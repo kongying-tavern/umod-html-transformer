@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
+    <!-- 程序集名与 asmdef 名对齐(r7 核查):Unity 侧引用 HtmlAgilityPack.Vendored,dotnet 产物须同名,否则热更侧按名解析失败 -->
+    <AssemblyName>HtmlAgilityPack.Vendored</AssemblyName>
     <Version>1.12.4</Version>
     <RootNamespace>HtmlAgilityPack</RootNamespace>
     <!-- 与上游 netstandard 目标一致的条件编译符号(HAP 源码只区分 NETSTANDARD 与旧框架) -->

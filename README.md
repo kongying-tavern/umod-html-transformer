@@ -179,5 +179,6 @@ string output = MyTransformer.Transform(html);
 - [插件与管线设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 管线工作者分离设计
 - [测试规范](Documentation~/testing.md)：通用测试约定与运行方式
 - [Unity 导入冒烟测试](Documentation~/smoke-test.md)：发布前的 Unity 导入验证（含许可证常见问题）
+- [HybridCLR 兼容性判断](Documentation~/hybridclr.md)：热更侧使用本库的兼容性分析与 link.xml 配置
 - [文档编写规范](Documentation~/documentation.md)：写文档时的语言与结构约定
 - 各转换器的文档统一放在 `Documentation~/transformers/` 下
