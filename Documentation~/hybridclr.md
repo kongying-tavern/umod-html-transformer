@@ -73,6 +73,44 @@ HtmlNode.SelectNodes("//tag")
 5. **边界**：任何人直接使用 HAP 附加 API（`GetEncapsulatedData<T>` / `HtmlWeb`）做热更业务时会撞反射/动态加载限制——本库公开接口未暴露，当前安全。
 
 
+## 固化检查（Tool~/hybridclr-check.ps1 / .sh）
+
+把上述分析的隐患固化为可重复执行的静态检查脚本，发布前一键运行：
+
+```powershell
+pwsh -File Tool~/hybridclr-check.ps1
+# 或 bash Tool~/hybridclr-check.sh
+```
+
+检查项（与 10 轮分析一一对应）：
+
+| 检查 | 对应隐患 | 工具 |
+|---|---|---|
+| 热更侧危险 API 扫描 | 反射/动态加载/unsafe 进入热更代码（r3/r4/r6） | `Select-String` / `grep -E` |
+| AssemblyName 一致性 | csproj 缺 AssemblyName 导致热更按名解析失败（r7） | asmdef JSON vs csproj XML |
+| link.xml 模板完整性 | System.Private.Xml 三命名空间遗漏导致 XPath 被裁（r2） | 模板比对 |
+
+配套文件：`Tool~/link.xml.template`（r2 修订版落地模板，复制到主工程 Assets/link.xml）。
+
+参数：`-HotUpdateDirs`（ps1，csv）或 `$1`（sh）指定热更侧源码目录，默认 `Runtime/HtmlTransformer`（布局 A）。
+
+退出码：0=全 PASS；1=有 FAIL（可用于 CI 门禁）。
+
+**已验证**：含负面测试——注入 `Activator.CreateInstance` 立即被抓；破坏 `AssemblyName` 立即报不匹配；恢复后全 PASS。
+
+
+---
+
+## 附录 r10：对抗审查结论（核心成立 + 2 漏洞已修）
+
+判定：核心结论成立（可进热更侧）；确认 2 处断言漏洞：
+
+1. **"仅 XPath"不实**（已修）：使用面还有 `HtmlEntity.DeEntitize`（H2UnityTransformer finalize 钩子，实体反转义）+ `HtmlNode.ElementsFlags` 全局静态写入（SanitizeConfig）——均无反射/动态加载，不影响判定；
+2. **asmdef 默认编入主包**（已修）：两个 asmdef `autoReferenced: true`，须用 HybridCLR 热更程序集列表机制从主包排除，否则双份类型冲突。
+
+其余确认：无 Facades（vendor 源码非 nuget）；全库 0 处 CharUnicodeInfo/CultureInfo（仅 OrdinalIgnoreCase 等不变文化 API）；静态状态驻解释器堆，IL2CPP 裁剪不触及热更 dll。
+
+
 ---
 
 ## 附录 r8:备选布局对比(link.xml 维护 vs 热更灵活性)

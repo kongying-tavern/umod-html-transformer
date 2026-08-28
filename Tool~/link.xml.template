@@ -1,0 +1,22 @@
+<!-- HybridCLR 兼容性 link.xml 模板(源自 Documentation~/hybridclr.md, r2 修订版)
+     使用方式: 复制到 Unity 主工程 Assets/link.xml;若 HAP 编入热更 dll 而非留主包,删除
+     HtmlAgilityPack.Vendored 段(热更程序集不参与主工程裁剪,该段为无操作)。 -->
+<linker>
+  <!-- 2021.3 .NET Standard 2.1(Mono/IL2CPP 共用)实现程序集; System.Xml 仅为编译期 facade -->
+  <assembly fullname="System.Private.Xml">
+    <!-- HAP 导航器基类依赖(XmlNameTable/IXPathNavigable 等), 保热更侧基类解析 -->
+    <namespace fullname="System.Xml" preserve="all"/>
+    <!-- 公共 XPath API: 导航/编译/迭代 -->
+    <namespace fullname="System.Xml.XPath" preserve="all"/>
+    <!-- 引擎内部: 编译(XPathParser/XPathScanner/QueryBuilder) + 求值(Query/CompiledXpathExpr)
+         + 迭代器(XPathSelectionIterator/XPathEmptyIterator/XPathArrayIterator),
+         XPathNodeIterator.MoveNext/Current 的虚实现全在此 -->
+    <namespace fullname="MS.Internal.Xml.XPath" preserve="all"/>
+  </assembly>
+  <!-- SelectNodes/SelectSingleNode 依赖: HtmlNodeNavigator(preserve=all 含 (HtmlDocument,HtmlNode) ctor
+       与 CurrentNode) + HtmlNodeCollection(Add/Count) -->
+  <assembly fullname="HtmlAgilityPack.Vendored">
+    <type fullname="HtmlAgilityPack.HtmlNodeNavigator" preserve="all"/>
+    <type fullname="HtmlAgilityPack.HtmlNodeCollection" preserve="all"/>
+  </assembly>
+</linker>
