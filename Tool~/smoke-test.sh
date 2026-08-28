@@ -12,8 +12,17 @@ LOG_SCAFFOLD="$TMP_PROJECT/scaffold.log"
 LOG_IMPORT="$TMP_PROJECT/import.log"
 
 # ---- 探测 Unity ----
-# 目标 Unity 主版本(前两位)，升级 Unity 时改 UNITY_VERSION 或脚本默认值
-UNITY_VERSION="${UNITY_VERSION:-2021.3}"
+# 目标 Unity 主版本单一来源:package.json 的 "unity" 字段,可用 UNITY_VERSION 覆盖
+if [ -z "${UNITY_VERSION:-}" ]; then
+  # 从 package.json 读 "unity" 字段(单一来源)
+  while IFS= read -r line; do
+    if [[ $line =~ "unity"[[:space:]]*:[[:space:]]*"([^"]+)" ]]; then
+      UNITY_VERSION="${BASH_REMATCH[1]}"
+      break
+    fi
+  done < package.json
+  if [ -z "$UNITY_VERSION" ]; then echo 'package.json missing "unity" field' >&2; exit 1; fi
+fi
 UNITY="${UNITY_PATH:-}"
 if [ -z "$UNITY" ]; then
   HUB="${LOCALAPPDATA:-$HOME/AppData/Local}/Programs/Unity Hub/Editor"

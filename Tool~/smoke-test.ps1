@@ -6,8 +6,8 @@
 #>
 param(
   [string]$UnityPath,
-  # 目标 Unity 主版本（前两位），升级 Unity 时改这里
-  [string]$UnityVersion = "2021.3"
+  # 覆盖 package.json 的 "unity" 字段指定的目标主版本
+  [string]$UnityVersion
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +17,12 @@ $logScaffold = Join-Path $tmpProject "scaffold.log"
 $logImport = Join-Path $tmpProject "import.log"
 
 # Probe Unity
+if (-not $UnityVersion) {
+  $pkg = Get-Content (Join-Path $repoRoot "package.json") -Raw | ConvertFrom-Json
+  $UnityVersion = $pkg.unity
+  if (-not $UnityVersion) { Write-Error "package.json missing \"unity\" field"; exit 1 }
+}
+Write-Host ("Target Unity version: " + $UnityVersion)
 if (-not $UnityPath) {
   $hubEditor = Join-Path $env:LOCALAPPDATA "Programs\Unity Hub\Editor"
   $pattern = "^" + [regex]::Escape($UnityVersion)

@@ -16,7 +16,7 @@ Bash（Windows git-bash / WSL / Linux，行为与 PowerShell 版一致）：
 bash Tool~/smoke-test.sh
 ```
 
-两个脚本都支持手动指定 Unity 可执行文件（`-UnityPath` 参数 / `UNITY_PATH` 环境变量），或指定目标主版本（`-UnityVersion` 参数 / `UNITY_VERSION` 环境变量，默认 `2021.3`）；均不指定时按默认版本自动探测。Unity 主版本升级时改默认值即可。
+两个脚本都支持手动指定 Unity 可执行文件（`-UnityPath` 参数 / `UNITY_PATH` 环境变量）。目标主版本的**单一来源是 `package.json` 的 `"unity"` 字段**（UPM 规范字段），脚本自动读取；升级 Unity 主版本时只改 package.json 一处。需要临时覆盖可传 `-UnityVersion` 参数 / `UNITY_VERSION` 环境变量。
 
 脚本做的事：
 
