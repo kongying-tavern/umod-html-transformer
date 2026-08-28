@@ -18,12 +18,17 @@ write_meta() {
   return 0
 }
 
-declare -A dirs=()
+dirs=()
 nf=0; ncs=0; nas=0; ndef=0
 
 while IFS= read -r f; do
   dir=$(dirname "$f")
-  while [ "$dir" != "." ]; do dirs["$dir"]=1; dir=$(dirname "$dir"); done
+  while [ "$dir" != "." ]; do
+    seen=0
+    for d in "${dirs[@]}"; do [ "$d" = "$dir" ] && seen=1 && break; done
+    [ "$seen" = 0 ] && dirs+=("$dir")
+    dir=$(dirname "$dir")
+  done
   leaf=$(basename "$f")
   case "$leaf" in
     .*)       continue ;;
@@ -33,7 +38,7 @@ while IFS= read -r f; do
   esac
 done < <(git ls-files | grep -v '~/' | grep -v '\.meta$')
 
-for d in "${!dirs[@]}"; do
+for d in "${dirs[@]}"; do
   if write_meta "$d" "$T_FOLDER"; then nf=$((nf+1)); fi
 done
 
