@@ -12,17 +12,28 @@ LOG_SCAFFOLD="$TMP_PROJECT/scaffold.log"
 LOG_IMPORT="$TMP_PROJECT/import.log"
 
 # ---- 探测 Unity ----
+# 目标 Unity 主版本(前两位)，升级 Unity 时改 UNITY_VERSION 或脚本默认值
+UNITY_VERSION="${UNITY_VERSION:-2021.3}"
 UNITY="${UNITY_PATH:-}"
 if [ -z "$UNITY" ]; then
   HUB="${LOCALAPPDATA:-$HOME/AppData/Local}/Programs/Unity Hub/Editor"
-  UNITY=$(find "$HUB" -maxdepth 2 -type f -name "Unity.exe" 2>/dev/null | sort -V | tail -n 1)
-  # Linux 版 Unity(2021.3+ 支持)
+  # 取 Hub 安装目录里匹配该主版本前缀的最新版
+  for ent in "$HUB"/"$UNITY_VERSION"*; do
+    [ -e "$ent" ] || continue
+    UNITY=$(find "$ent" -maxdepth 2 -type f -name "Unity.exe" 2>/dev/null | sort -V | tail -n 1)
+    [ -n "$UNITY" ] && break
+  done
+  # Linux 版 Unity
   if [ -z "$UNITY" ]; then
-    UNITY=$(find /opt/unity "$HOME" -maxdepth 4 -type f -name Unity 2>/dev/null | sort -V | tail -n 1)
+    for ent in /opt/unity/"$UNITY_VERSION"* "$HOME"/Unity/"$UNITY_VERSION"*; do
+      [ -e "$ent" ] || continue
+      UNITY=$(find "$ent" -maxdepth 2 -type f -name Unity 2>/dev/null | sort -V | tail -n 1)
+      [ -n "$UNITY" ] && break
+    done
   fi
 fi
 if [ -z "$UNITY" ] || [ ! -x "$UNITY" ]; then
-  echo "Unity 2021.3.x not found; set UNITY_PATH explicitly" >&2
+  echo "Unity $UNITY_VERSION.x not found; set UNITY_PATH explicitly" >&2
   exit 1
 fi
 echo "Unity: $UNITY"

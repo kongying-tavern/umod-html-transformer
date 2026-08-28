@@ -4,7 +4,11 @@
   Two-phase: scaffold temp project with -createProject, then inject this repo as a package and import.
   Run: pwsh -File Tool~/smoke-test.ps1
 #>
-param([string]$UnityPath)
+param(
+  [string]$UnityPath,
+  # 目标 Unity 主版本（前两位），升级 Unity 时改这里
+  [string]$UnityVersion = "2021.3"
+)
 
 $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -15,8 +19,9 @@ $logImport = Join-Path $tmpProject "import.log"
 # Probe Unity
 if (-not $UnityPath) {
   $hubEditor = Join-Path $env:LOCALAPPDATA "Programs\Unity Hub\Editor"
-  $c = Get-ChildItem $hubEditor -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "^2021\.3" } | Sort-Object Name -Descending
-  if (-not $c) { Write-Error "Unity 2021.3.x not found; pass -UnityPath explicitly"; exit 1 }
+  $pattern = "^" + [regex]::Escape($UnityVersion)
+  $c = Get-ChildItem $hubEditor -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match $pattern } | Sort-Object Name -Descending
+  if (-not $c) { Write-Error ("Unity " + $UnityVersion + ".x not found; pass -UnityPath explicitly"); exit 1 }
   $UnityPath = Join-Path $c[0].FullName "Editor\Unity.exe"
 }
 if (-not (Test-Path $UnityPath)) { Write-Error ("Unity not found: " + $UnityPath); exit 1 }
