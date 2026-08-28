@@ -8,8 +8,8 @@ namespace HtmlTransformer.Unity.Extensions
     {
         public void Transform(HtmlDocument doc)
         {
-            var brNodes = doc.DocumentNode.SelectNodes("//br");
-            if (brNodes != null)
+            var brNodes = doc.DocumentNode.Descendants("br");
+            if (brNodes.Any())
             {
                 var brNodesList = brNodes.ToList(); // Convert to list to avoid modification during iteration
                 foreach (var node in brNodesList)

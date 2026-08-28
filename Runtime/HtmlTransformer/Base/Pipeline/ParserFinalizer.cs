@@ -12,7 +12,7 @@ namespace HtmlTransformer.Base.Pipeline
             finalizeConfig.InvokeBeforeFinalizeHook(doc);
 
             string html = "";
-            var bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+            var bodyNode = doc.DocumentNode.Descendants("body").FirstOrDefault();
             if (bodyNode != null)
             {
                 // Get inner HTML of body (excluding the body tags themselves)

@@ -10,8 +10,8 @@ namespace HtmlTransformer.Unity.Extensions
     {
         public void Transform(HtmlDocument doc)
         {
-            var colorNodes = doc.DocumentNode.SelectNodes("//color");
-            if (colorNodes != null)
+            var colorNodes = doc.DocumentNode.Descendants("color");
+            if (colorNodes.Any())
             {
                 var colorNodesList = colorNodes.ToList(); // Convert to list to avoid modification during iteration
                 foreach (var node in colorNodesList)

@@ -9,8 +9,8 @@ namespace HtmlTransformer.Unity.Extensions
     {
         public void Transform(HtmlDocument doc)
         {
-            var nodes = doc.DocumentNode.SelectNodes("//link");
-            if (nodes != null)
+            var nodes = doc.DocumentNode.Descendants("link");
+            if (nodes.Any())
             {
                 var nodesList = nodes.ToList(); // Convert to list to avoid modification during iteration
                 foreach (var node in nodesList)

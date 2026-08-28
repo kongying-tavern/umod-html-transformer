@@ -58,11 +58,12 @@ namespace HtmlTransformer.Base.Config
                     continue;
                 }
 
-                // Create XPath selector for all tags to find
-                string xpathSelector = string.Join(" | ", findTagNames.Select(tag => $"//{tag}"));
-
-                var nodes = doc.DocumentNode.SelectNodes(xpathSelector);
-                if (nodes != null)
+                // 后代标签查询: union 语义(去重、保文档序)
+                var nodes = findTagNames
+                    .SelectMany(tag => doc.DocumentNode.Descendants(tag))
+                    .Distinct()
+                    .ToList();
+                if (nodes.Count > 0)
                 {
                     var nodesArray = nodes.ToArray(); // Create array to avoid modification during iteration
 

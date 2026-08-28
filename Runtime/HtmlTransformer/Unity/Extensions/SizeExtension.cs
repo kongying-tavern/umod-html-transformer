@@ -10,8 +10,8 @@ namespace HtmlTransformer.Unity.Extensions
     {
         public void Transform(HtmlDocument doc)
         {
-            var sizeNodes = doc.DocumentNode.SelectNodes("//size");
-            if (sizeNodes != null)
+            var sizeNodes = doc.DocumentNode.Descendants("size");
+            if (sizeNodes.Any())
             {
                 var sizeNodesList = sizeNodes.ToList(); // Convert to list to avoid modification during iteration
                 foreach (var node in sizeNodesList)

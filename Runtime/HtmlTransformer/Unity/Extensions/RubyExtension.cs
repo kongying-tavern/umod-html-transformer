@@ -9,8 +9,8 @@ namespace HtmlTransformer.Unity.Extensions
     {
         public void Transform(HtmlDocument doc)
         {
-            var rNodes = doc.DocumentNode.SelectNodes("//r");
-            if (rNodes != null)
+            var rNodes = doc.DocumentNode.Descendants("r");
+            if (rNodes.Any())
             {
                 var rNodesList = rNodes.ToList(); // Convert to list to avoid modification during iteration
                 foreach (var node in rNodesList)
@@ -19,7 +19,7 @@ namespace HtmlTransformer.Unity.Extensions
                     var nodeClone = node.Clone();
 
                     // Get definition (rt elements)
-                    var defList = nodeClone.SelectNodes(".//rt");
+                    var defList = nodeClone.Descendants("rt");
                     var defContentList = new List<string>();
                     if (defList != null)
                     {
