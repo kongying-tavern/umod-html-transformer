@@ -87,6 +87,7 @@ dotnet format umod-html-transformer.sln --verify-no-changes --include "Runtime/H
 
 ```powershell
 pwsh -File Tool~/smoke-test.ps1
+bash Tool~/smoke-test.sh
 ```
 
 脚本自动建临时工程、注入本包、批处理导入编译，输出 PASS / FAIL。临时工程位置、Unity 版本探测与许可证注意项见 [Unity 导入冒烟测试](Documentation~/smoke-test.md)。

@@ -4,9 +4,19 @@
 
 ## 运行
 
+PowerShell（Windows）：
+
 ```powershell
 pwsh -File Tool~/smoke-test.ps1
 ```
+
+Bash（Windows git-bash / WSL / Linux，行为与 PowerShell 版一致）：
+
+```bash
+bash Tool~/smoke-test.sh
+```
+
+两个脚本都支持 `-UnityPath`（PowerShell）或 `UNITY_PATH` 环境变量（Bash）手动指定 Unity 可执行文件；不指定时自动探测。
 
 脚本做的事：
 
