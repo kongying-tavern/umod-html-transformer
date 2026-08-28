@@ -92,6 +92,8 @@ bash Tool~/smoke-test.sh
 
 脚本自动建临时工程、注入本包、批处理导入编译，输出 PASS / FAIL。临时工程位置、Unity 版本探测与许可证注意项见 [Unity 导入冒烟测试](Documentation~/smoke-test.md)。
 
+Unity 目标主版本的唯一出处是 `package.json` 的 `"unity"` 字段：升级 Unity 主版本时改这一处即可，两个脚本自动读取（详情见上述文档）。
+
 ### 发布（打 tag）
 
 - 版本号由 `package.json` 的 `version` 字段决定（semver）
