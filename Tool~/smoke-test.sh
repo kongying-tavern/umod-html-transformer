@@ -15,7 +15,6 @@ LOG_IMPORT="$TMP_PROJECT/import.log"
 UNITY="${UNITY_PATH:-}"
 if [ -z "$UNITY" ]; then
   HUB="${LOCALAPPDATA:-$HOME/AppData/Local}/Programs/Unity Hub/Editor"
-  [ -d "$HUB" ] || HUB="D:/Programs/Unity Hub/Editor"
   UNITY=$(find "$HUB" -maxdepth 2 -type f -name "Unity.exe" 2>/dev/null | sort -V | tail -n 1)
   # Linux 版 Unity(2021.3+ 支持)
   if [ -z "$UNITY" ]; then

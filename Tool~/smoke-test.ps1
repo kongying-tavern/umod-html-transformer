@@ -15,7 +15,6 @@ $logImport = Join-Path $tmpProject "import.log"
 # Probe Unity
 if (-not $UnityPath) {
   $hubEditor = Join-Path $env:LOCALAPPDATA "Programs\Unity Hub\Editor"
-  if (-not (Test-Path $hubEditor)) { $hubEditor = "D:\Programs\Unity Hub\Editor" }
   $c = Get-ChildItem $hubEditor -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "^2021\.3" } | Sort-Object Name -Descending
   if (-not $c) { Write-Error "Unity 2021.3.x not found; pass -UnityPath explicitly"; exit 1 }
   $UnityPath = Join-Path $c[0].FullName "Editor\Unity.exe"

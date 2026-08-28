@@ -27,10 +27,10 @@ bash Tool~/smoke-test.sh
 - 检查导入日志里有没有编译错误，输出 PASS / FAIL；
 - 收尾时删除临时工程。
 
-Unity 版本探测：先找 `%LOCALAPPDATA%\Programs\Unity Hub\Editor`，再找 `D:\Programs\Unity Hub\Editor`，取其中 2021.3.x 的最新版本。探测不到时报错退出，手动指定路径：
+Unity 版本探测：找 Unity Hub 的默认安装目录 `%LOCALAPPDATA%\Programs\Unity Hub\Editor`，取其中 2021.3.x 的最新版本。探测不到（比如装在非默认位置）时报错退出，手动指定路径：
 
 ```powershell
-pwsh -File Tool~/smoke-test.ps1 -UnityPath "D:\Programs\Unity Hub\Editor\2021.3.45f2c1\Editor\Unity.exe"
+pwsh -File Tool~/smoke-test.ps1 -UnityPath "<你的 Unity 安装目录>\Editor\Unity.exe"
 ```
 
 ## 临时工程
