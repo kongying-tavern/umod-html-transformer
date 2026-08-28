@@ -1,7 +1,7 @@
 using System.Linq;
 using HtmlTransformer.Base.Config;
 
-namespace HtmlTransformer.Base.DI
+namespace HtmlTransformer.Base.Pipeline
 {
     public class ParserFinalizer
     {

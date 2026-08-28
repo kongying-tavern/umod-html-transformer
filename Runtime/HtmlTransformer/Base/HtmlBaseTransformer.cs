@@ -1,5 +1,5 @@
 using HtmlTransformer.Base.Config;
-using HtmlTransformer.Base.DI;
+using HtmlTransformer.Base.Pipeline;
 
 namespace HtmlTransformer.Base
 {

@@ -4,7 +4,7 @@
 
 工作方式：输入是一套简化版的通用 HTML，网页可以直接渲染它；每个 Transformer 把它转换成自己的场景所需要的格式。转换以网页版的表现为基准，尽量做到接近。
 
-底座把转换过程拆成 5 个阶段，每个阶段由「配置（Config）」与「DI（依赖注入）」配合完成，由 `HtmlBaseTransformer`（抽象类）统一编排。
+底座把转换过程拆成 5 个阶段，每个阶段由「配置（Config）」与「管线工作者（`Base/Pipeline`）」配合完成，由 `HtmlBaseTransformer`（抽象类）统一编排。
 
 ## 管线概览
 
@@ -16,7 +16,7 @@ HTML ──►│ Load ─► Sanitize ─► Normalize ─► Transform ─►�
 
 对应 `HtmlBaseTransformer.Process(html)` 的执行流程：
 
-| # | 阶段 | DI | 配置类 | 职责 |
+| # | 阶段 | 管线工作者 | 配置类 | 职责 |
 |---|------|------|--------|------|
 | 1 | Load | `ParserLoader` | `LoadConfig` / `OutputConfig` | 预处理输入、解析为 `HtmlDocument` |
 | 2 | Sanitize | `ParserLoader` | `SanitizeConfig` | 按白名单净化标签与属性 |
@@ -24,7 +24,7 @@ HTML ──►│ Load ─► Sanitize ─► Normalize ─► Transform ─►�
 | 4 | Transform | `ParserTransformer` | `TransformConfig` | 按序执行扩展（插件） |
 | 5 | Finalize | `ParserFinalizer` | `FinalizeConfig` | 提取 body 内容、收尾后处理 |
 
-> DI = 依赖注入（`Base/DI`）：无状态的管线工作者，依赖由 `HtmlBaseTransformer.Process()` 以方法参数注入，设计细节见 [插件与 DI 设计](plugin-design.md)。
+> 管线工作者（`Base/Pipeline`）：无状态地执行各阶段，依赖由 `HtmlBaseTransformer.Process()` 以方法参数注入，设计细节见 [插件与管线设计](plugin-design.md)。
 
 ## 各阶段说明
 
@@ -108,7 +108,7 @@ public interface IExtensionInterface
 }
 ```
 
-插件只依赖 `HtmlAgilityPack.HtmlDocument`，与具体输出目标解耦。设计思路、约束与编写规范见 [插件与 DI 设计](plugin-design.md)。
+插件只依赖 `HtmlAgilityPack.HtmlDocument`，与具体输出目标解耦。设计思路、约束与编写规范见 [插件与管线设计](plugin-design.md)。
 
 ## 工具类
 

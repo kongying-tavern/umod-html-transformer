@@ -173,7 +173,7 @@ string output = MyTransformer.Transform(html);
 
 - [底座管线](Documentation~/base-pipeline.md)：通用转换机制、配置、插件接口
 - [编写一个新转换器](Documentation~/writing-a-transformer.md)：底座入门的完整步骤
-- [插件与 DI 设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 依赖注入分离设计
+- [插件与管线设计](Documentation~/plugin-design.md)：插件设计思路与配置 / 管线工作者分离设计
 - [测试规范](Documentation~/testing.md)：通用测试约定与运行方式
 - [Unity 导入冒烟测试](Documentation~/smoke-test.md)：发布前的 Unity 导入验证（含许可证常见问题）
 - [文档编写规范](Documentation~/documentation.md)：写文档时的语言与结构约定

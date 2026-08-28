@@ -1,6 +1,6 @@
 # 编写一个新的转换器
 
-基于底座 `HtmlBaseTransformer` 继承编写。底座管线机制见 [底座管线](base-pipeline.md)，插件设计与扩展口见 [插件与 DI 设计](plugin-design.md)。
+基于底座 `HtmlBaseTransformer` 继承编写。底座管线机制见 [底座管线](base-pipeline.md)，插件设计与扩展口见 [插件与管线设计](plugin-design.md)。
 
 ## 入口约定
 
@@ -52,7 +52,7 @@ public class MyTransformer : HtmlBaseTransformer
 
 ## 插件编写
 
-Transform 阶段插件按名字**有序**执行，就地修改 `HtmlDocument`，是承接输出目标规则的主要扩展点。接口、设计约束、两类模式与编写模板见 [插件与 DI 设计](plugin-design.md)。
+Transform 阶段插件按名字**有序**执行，就地修改 `HtmlDocument`，是承接输出目标规则的主要扩展点。接口、设计约束、两类模式与编写模板见 [插件与管线设计](plugin-design.md)。
 
 ## 命名空间与文档约定
 

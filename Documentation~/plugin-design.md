@@ -1,20 +1,18 @@
-# 插件与 DI 设计
+# 插件与管线设计
 
-本库把「转换策略」与「执行行为」分离：**配置（Config）** 声明「做什么」，**DI（依赖注入）** 负责执行。插件是挂在 Transform 阶段上的扩展点，承接具体输出目标的规则。
+本库把「转换策略」与「执行行为」分离：**配置（Config）** 声明「做什么」，**管线工作者（`Base/Pipeline`）** 负责执行。插件是挂在 Transform 阶段上的扩展点，承接具体输出目标的规则。
 
-## DI（依赖注入）设计
+## 管线工作者设计
 
-### 为什么叫 DI
-
-`Base/DI` 下的 `ParserLoader`、`ParserTransformer`、`ParserFinalizer` 是管线的**工作者**（worker）。它们不自行创建或持有配置与运行数据，而是由 `HtmlBaseTransformer` 在 `Process()` 里把依赖通过**方法参数注入**（method injection）交给它们——这就是「依赖注入（DI）」的直接体现。
+`Base/Pipeline` 下的 `ParserLoader`、`ParserTransformer`、`ParserFinalizer` 是管线的**工作者**（worker）。它们不自行创建或持有配置与运行数据，而是由 `HtmlBaseTransformer` 在 `Process()` 里把依赖通过**方法参数注入**（method injection）交给它们。
 
 ### 三层结构
 
 | 层 | 命名空间 | 内容 | 职责 |
 |----|----------|------|------|
 | 依赖（配置） | `Base.Config` | `SanitizeConfig`、`TransformConfig`…（策略声明）、`DataConfig`（运行数据） | 描述「做什么」，承载阶段间数据 |
-| 注入方 | `HtmlBaseTransformer` | 持有全部配置实例 | 在 `Process()` 中把依赖注入给 DI |
-| 被注入方（DI） | `Base.DI` | `ParserLoader`、`ParserTransformer`、`ParserFinalizer` | 无状态地执行，接受注入的依赖完成工作 |
+| 注入方 | `HtmlBaseTransformer` | 持有全部配置实例 | 在 `Process()` 中把依赖注入给管线工作者 |
+| 被注入方（管线工作者） | `Base.Pipeline` | `ParserLoader`、`ParserTransformer`、`ParserFinalizer` | 无状态地执行，接受注入的依赖完成工作 |
 
 ### 注入方式
 
@@ -34,13 +32,13 @@ public string Process(string html)
 }
 ```
 
-DI 侧没有字段、不缓存状态，依赖全部来自调用参数；`Configure()` 只负责往配置里声明策略。
+管线工作者侧没有字段、不缓存状态，依赖全部来自调用参数；`Configure()` 只负责往配置里声明策略。
 
 ### 为什么这么分
 
 - **依赖是纯数据**：配置类只承载声明与数据，可独立测试；
-- **DI 是无状态行为**：不含业务规则，只执行注入的配置，一套 DI 服务所有转换器；
-- **新增转换器零改动**：只继承 `HtmlBaseTransformer` + `Configure()` 堆配置，DI 与 Config 都不用动。
+- **管线工作者是无状态行为**：不含业务规则，只执行注入的配置，一套管线工作者服务所有转换器；
+- **新增转换器零改动**：只继承 `HtmlBaseTransformer` + `Configure()` 堆配置，管线工作者与 Config 都不用动。
 
 各转换器如何编写（入口约定、`Configure()` 模板、命名空间与文档约定）见 [编写一个新转换器](writing-a-transformer.md)。
 
