@@ -96,14 +96,14 @@ Unity 目标主版本的唯一出处是 `package.json` 的 `"unity"` 字段：�
 
 ### HybridCLR 兼容性检查（热更工程接入前必查）
 
-本库可进入 HybridCLR 热更侧，但有几处必须遵守的约束（link.xml、程序集名、危险 API）。发布前一键静态检查：
+本库可进入 HybridCLR 热更侧。库内查询用纯托管 `Descendants` 遍历（不依赖 `System.Xml.XPath` 引擎），因此**无需 link.xml**；发布前一键静态检查（危险 API / 程序集名一致性 / 零 XPath 依赖）：
 
 ```powershell
 pwsh -File Tool~/hybridclr-check.ps1
 bash Tool~/hybridclr-check.sh
 ```
 
-退出码 0=全 PASS（可用于 CI 门禁）。link.xml 模板见 `Tool~/link.xml.template`，完整分析见 [HybridCLR 兼容性判断](Documentation~/hybridclr.md)。
+退出码 0=全 PASS（可用于 CI 门禁）。完整分析见 [HybridCLR 兼容性判断](Documentation~/hybridclr.md)。
 
 ### 发布（打 tag）
 

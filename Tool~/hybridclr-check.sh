@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # HybridCLR 兼容性静态检查(bash 版),与 hybridclr-check.ps1 行为一致。
-# 1. 热更侧危险 API 扫描 2. AssemblyName 一致性 3. link.xml 模板完整性
+# 1. 热更侧危险 API 扫描 2. AssemblyName 一致性 3. 热更侧零 XPath 引擎依赖
 # 用法: bash Tool~/hybridclr-check.sh [热更目录csv, 默认 Runtime/HtmlTransformer]
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -56,13 +56,24 @@ else
   echo "  PASS: all asmdef/csproj assembly names aligned"
 fi
 
-echo "[check] link.xml template: System.Private.Xml namespaces"
-TPL="Tool~/link.xml.template"
-[ -f "$TPL" ] || { echo "  FAIL: template missing: $TPL"; FAIL=$((FAIL+1)); }
-for ns in "System.Xml" "System.Xml.XPath" "MS.Internal.Xml.XPath"; do
-  grep -q "fullname=\"$ns\"" "$TPL" 2>/dev/null || { echo "  FAIL: template missing namespace: $ns"; FAIL=$((FAIL+1)); }
+echo "[check] hot-update assembly: zero XPath-selector dependency"
+XPATHS="SelectNodes|SelectSingleNode|System\\.Xml\\.XPath"
+XHITS=""
+for d in "${DIRS[@]}"; do
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    h=$(grep -nE "$XPATHS" "$f" 2>/dev/null || true)
+    [ -n "$h" ] && XHITS="$XHITS
+$h"
+  done < <(find "$d" -name "*.cs" -type f 2>/dev/null)
 done
-[ "$FAIL" -eq 0 ] && echo "  PASS: link.xml.template covers all System.Private.Xml namespaces"
+if [ -n "$(printf "%s" "$XHITS" | tr -d ' \n')" ]; then
+  echo "  FAIL: XPath-selector usage(s) in hot-update code (use Descendants instead):"
+  printf "%s\n" "$XHITS" | grep -v "^\$" | head -n 10 | sed "s/^/    /"
+  FAIL=$((FAIL+1))
+else
+  echo "  PASS: no XPath-selector dependency in hot-update code"
+fi
 
 echo ""
 if [ "$FAIL" -eq 0 ]; then echo "HybridCLR check: ALL PASS"; exit 0; fi

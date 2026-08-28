@@ -1,11 +1,11 @@
 # HybridCLR 兼容性判断
 
-结论：**本库（`HtmlTransformer` + vendored `HtmlAgilityPack`）可安全进入 HybridCLR 热更侧（Hot Update）dll，无阻断性问题；XML/XPath 部分有明确依赖，需 link.xml 保链路。**
+结论：**本库（`HtmlTransformer` + vendored `HtmlAgilityPack`）可安全进入 HybridCLR 热更侧（Hot Update）dll，无阻断性问题。默认方案无需 link.xml（方案 A：运行时零 `System.Xml.XPath` 依赖）；仅当外部代码对 HAP 使用任意 XPath 表达式时，才需要备选方案 B 的 link.xml。**
 
 ## 程序集定位
 
 - 两个 asmdef 均 `noEngineReferences: true`：纯 C#，零 UnityEngine 依赖，天然具备热更侧资质；
-- `HtmlTransformer` 对 `HtmlAgilityPack` 的使用面：XPath 导航（`SelectNodes` / `SelectSingleNode`）+ `HtmlEntity.DeEntitize`（实体反转义，char 循环 + 静态字典，无反射）+ 节点 API（`LoadHtml`/`OuterHtml`/`CreateElement` 等）；另有 `SanitizeConfig` 写入全局静态 `HtmlNode.ElementsFlags`（r10 核查）——均无反射、无动态加载；
+- `HtmlTransformer` 对 `HtmlAgilityPack` 的使用面：**纯托管遍历**（`Descendants(name)`，替代原先的 `SelectNodes` XPath 查询，见方案 A）+ `HtmlEntity.DeEntitize`（实体反转义，char 循环 + 静态字典，无反射）+ 节点 API（`LoadHtml`/`OuterHtml`/`CreateElement` 等）；另有 `SanitizeConfig` 写入全局静态 `HtmlNode.ElementsFlags`（r10 核查）——**运行时零 `System.Xml.XPath` 依赖、零反射、零动态加载**；
 - 未暴露 HAP 的附加 API（`GetEncapsulatedData<T>` 泛型反射封装、`HtmlWeb` 网络爬取）给公开接口。
 
 ## 风险定位表
@@ -18,7 +18,33 @@
 | `System.Xml.XPath` 全链路 | `HtmlNodeNavigator` 等 | **是（每次 XPath 查询必走）** | 见下文，需 link.xml 保留 |
 | 线程/异步（`Task`/`Thread`） | `HtmlWeb.cs` / `MixedCodeDocument.cs` | 否 | 无影响 |
 
-## XML/XPath 部分（重要）
+## 方案 A（默认，无需 link.xml）：运行时零 XPath 引擎依赖
+
+**核心思路**：库对 HAP 的查询从 XPath 字符串（`SelectNodes("//tag")`，编译期不可见、运行期才解析字符串）改为 **HAP 纯托管遍历 `Descendants(name)`**（静态调用、编译期可见、不经过 `System.Xml.XPath` 引擎）。引擎类型未被调用，即使被 IL2CPP 裁掉也毫无影响——**link.xml 整个不需要**。
+
+改动（已落地，182 测试全过验证语义等价）：
+
+| 原 XPath | 改为 | 语义 |
+|---|---|---|
+| `SelectNodes("//tag")` | `Descendants("tag")` | 全后代同名节点（`OrdinalIgnoreCase` 匹配，与 HAP 默认 lower 行为一致） |
+| `SelectSingleNode("//body")` | `Descendants("body").FirstOrDefault()` | 后代中第一个 body |
+| `node.SelectNodes(".//rt")` | `node.Descendants("rt")` | 相对后代 |
+| `SelectNodes("//a | //b")` | `SelectMany(Descendants) + Distinct` | union 去重、保文档序 |
+
+null 检查改为空集合检查（`Descendants` 返回 `IEnumerable` 永不为 null）。
+
+**验证**：`dotnet test` 182/182 通过（语义等价由测试证明）；`hybridclr-check.ps1` 第 3 项已改为"热更侧零 XPath-selector 依赖"静态检查，防止回归（负面测试：注入 `SelectNodes` 立即 FAIL）。
+
+**收益**：
+- 无需 link.xml（不必在主工程维护文件、不必依赖 HybridCLR Generate 行为）；
+- 移除对 `System.Private.Xml` 裁剪面的全部依赖（r2/r9 的担忧全部消失）；
+- 查询逻辑更简单（无 XPath 编译/解析开销）。
+
+**代价**：仅支持"按标签名找后代"这一种查询形态；若未来需要任意 XPath 表达式（属性选择、轴、函数），需回到方案 B。
+
+---
+
+## XML/XPath 部分（备选方案 B：原 XPath 查询 + link.xml）
 
 ### 真实调用链
 
@@ -68,7 +94,7 @@ HtmlNode.SelectNodes("//tag")
 
 1. **主包排除（关键，r10 核查）**：两个 asmdef 默认会被 Unity 自动编入主包（`autoReferenced: true`）。必须从主包里排除这两个程序集（如 HybridCLR 的 HotUpdate 程序集列表机制），只由热更 dll 编译携带，否则同一类型在主包与热更侧各有一份，会加载冲突或热更不生效；
 2. **热更侧打包**：`Runtime/HtmlTransformer` 编入热更 dll，使用 `H2UnityTransformer`；HAP 应根据布局决定（见附录 r8：推荐 HAP 留 AOT 主工程，只引用不编译）；
-3. **link.xml**：放入主工程 `Assets/link.xml`（内容如上）；
+3. **link.xml**：**默认不需要**（方案 A 已消除 XPath 引擎依赖）。仅当外部代码对 HAP 使用任意 XPath 表达式时，才需方案 B 的 link.xml；
 4. **源码零改动**：无需为 HybridCLR 改任何 C#；
 5. **边界**：任何人直接使用 HAP 附加 API（`GetEncapsulatedData<T>` / `HtmlWeb`）做热更业务时会撞反射/动态加载限制——本库公开接口未暴露，当前安全。
 
@@ -88,9 +114,9 @@ pwsh -File Tool~/hybridclr-check.ps1
 |---|---|---|
 | 热更侧危险 API 扫描 | 反射/动态加载/unsafe 进入热更代码（r3/r4/r6） | `Select-String` / `grep -E` |
 | AssemblyName 一致性 | csproj 缺 AssemblyName 导致热更按名解析失败（r7） | asmdef JSON vs csproj XML |
-| link.xml 模板完整性 | System.Private.Xml 三命名空间遗漏导致 XPath 被裁（r2） | 模板比对 |
+| 热更侧零 XPath-selector 依赖 | 误用 `SelectNodes` 重新引入引擎依赖（方案 A 回归） | `SelectNodes`/`SelectSingleNode`/`System.Xml.XPath` 扫描 |
 
-配套文件：`Tool~/link.xml.template`（r2 修订版落地模板，复制到主工程 Assets/link.xml）。
+配套文件：`Tool~/link.xml.template`（方案 B 备选模板，仅需任意 XPath 时复制到主工程 Assets/link.xml）。
 
 参数：`-HotUpdateDirs`（ps1，csv）或 `$1`（sh）指定热更侧源码目录，默认 `Runtime/HtmlTransformer`（布局 A）。
 
@@ -113,9 +139,9 @@ pwsh -File Tool~/hybridclr-check.ps1
 
 ---
 
-## 附录 r8:备选布局对比(link.xml 维护 vs 热更灵活性)
+## 附录 r8:备选布局对比(热更灵活性)
 
-**结论:布局 A(HAP 留 AOT 主工程、HtmlTransformer 进热更侧)最优。** link.xml 属三布局公共成本,换布局省不掉。
+**结论:布局 A(HAP 留 AOT 主工程、HtmlTransformer 进热更侧)最优。** 方案 A 落地后 link.xml 不再是任何布局的必要成本(引擎依赖已消除),布局对比仅剩 A/B/C 的程序集分界问题。
 
 | 布局 | HybridCLR 兼容 | link.xml | 规则热更 |
 |---|---|---|---|
@@ -123,11 +149,11 @@ pwsh -File Tool~/hybridclr-check.ps1
 | B:HT AOT + HAP 热更 | ❌ AOT 静态引用热更程序集,IL2CPP 编译期引用不存在,须接口化拆引用、动源码 | 必需 | ❌ 规则冻结 |
 | C:整库 AOT | ✅ 无额外约束 | 必需 | ❌ 不能热更 |
 
-**link.xml 省不掉**:XPath 字符串驱动(`Compile("//tag")` 运行时发生),IL2CPP 看不到字符串;三布局 System.Xml 均 AOT,保链路不可省(r2 修订: System.Private.Xml 按 System.Xml/System.Xml.XPath/MS.Internal.Xml.XPath 三命名空间整保)。省"维护成本"只能靠脚本自动生成/校验,非换布局可解。
+**link.xml 原结论(方案 B 视角)**:XPath 字符串驱动(`Compile("//tag")` 运行时发生),IL2CPP 看不到字符串;若保留 XPath 查询,保链路不可省(r2 修订: System.Private.Xml 按 System.Xml/System.Xml.XPath/MS.Internal.Xml.XPath 三命名空间整保)。**方案 A 落地后此约束已消除**——库不再用 XPath,链路无引用,任意布局均无需 link.xml。
 
 **选 A**:①规则即业务——扩展/标签映射/扩展顺序/pre-post 钩子全在 HtmlTransformer,全可热更;新格式加标签、改语义不发客户端,正对该场景。②零改动合规——asmdef 方向不变只拆编译分组;热更侧 `new HtmlDocument()`、跨边界传 DOM、调 AOT 的 `SelectNodes` 均 HybridCLR 常规模式,无泛型补全需求。③代价可控——HAP 是通用解析执行器,规则迭代不碰它;Encapsulator/HtmlWeb 留 AOT,风险持平;日后需热更解析内核,把 HAP 移入热更包即可,迁移平缓。
 
-**落地**:HAP 编入主工程并从热更包排除;HT 编热更 dll;link.xml 照旧;热更包不重复带 HAP。
+**落地**:HAP 编入主工程并从热更包排除;HT 编热更 dll;link.xml 不需要(方案 A);热更包不重复带 HAP。
 
 ---
 
@@ -157,11 +183,11 @@ pwsh -File Tool~/hybridclr-check.ps1
 2. 建工程装两包;HotUpdateScripts/ 放热更代码(asmdef autoReferenced:false);HybridCLR Installer 打补丁;Generate>All 自动生成 link.xml/AOTGenericReferences;
 3. 构建脚本编热更 dll 放 StreamingAssets;运行时 Assembly.Load 调入;
 4. 热更 dll 自检:导出 182 组「输入→期望」为内嵌 JSON,逐条比对,输出 pass/总数;
-5. Generate>All 后**以生成物为准核对 link.xml**(见 r2: 手写 HtmlAgilityPack.Vendored 条目在热更布局下是无操作,Generate 会自动保 System.Xml.XPath);
+5. 运行 `Tool~/hybridclr-check.ps1` 三项检查(危险 API/程序集名/零 XPath 依赖)应全 PASS;若方案 B,Generate>All 后以生成物为准核对 link.xml;
 6. 先 Windows IL2CPP,再安卓真机(Strip off/on 各一次);
 7. 真实富文本样本与 Editor 输出 diff。
 
-**静态分析最可能出错的一点**(r9 证伪):手写 link.xml 保 HtmlAgilityPack.Vendored——热更程序集不参与主工程链接器裁剪,该条目无效;正确做法是 HybridCLR Generate 自动生成的 link.xml(它按热更引用自动保 System.Xml.XPath)。真机才能见分晓:两套 XPath 实现(.NET 测试 vs Unity 内置)的虚拟调用、状态差异,以及 System.Private.Xml(AOT)与解释器中的 HtmlNodeNavigator 的协作。
+**静态分析最可能出错的一点**(r9 原证伪):手写 link.xml 保 HtmlAgilityPack.Vendored——热更程序集不参与主工程链接器裁剪;而**方案 A 已从根上移除该问题**(库不再调用 XPath 引擎,不存在裁剪依赖)。方案 A 下真机验证点只剩:Descendants 遍历在 Unity 内置 HAP 与 .NET 测试两套实现上的行为一致性(182 测试为基线)。
 
 ---
 

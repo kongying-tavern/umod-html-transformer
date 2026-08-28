@@ -3,7 +3,7 @@
   HybridCLR 兼容性静态检查。把 10 轮分析的隐患固化为可重复检查:
     1. 热更侧危险 API 扫描(反射/动态加载/平台 IO/unsafe)
     2. csproj AssemblyName 与 asmdef 名一致性(防热更按名解析失败, r7)
-    3. link.xml 模板完整性(System.Private.Xml 三命名空间整保, r2)
+    3. 热更侧零 XPath 引擎依赖(库用 Descendants 遍历, 无需 link.xml)
   Run: pwsh -File Tool~/hybridclr-check.ps1
 #>
 param(
@@ -77,22 +77,30 @@ Check "assembly name: asmdef vs csproj AssemblyName" {
   }
 }
 
-# ---- 3. link.xml 模板完整性(System.Private.Xml 三命名空间, r2) ----
-Check "link.xml template: System.Private.Xml namespaces" {
-  $expect = @(
-    "System.Xml",
-    "System.Xml.XPath",
-    "MS.Internal.Xml.XPath"
+# ---- 3. 热更侧零 XPath 引擎依赖(方案 A: 库用 Descendants 遍历, 不依赖 System.Xml.XPath) ----
+Check "hot-update assembly: zero XPath-selector dependency" {
+  $pats = @(
+    "SelectNodes",
+    "SelectSingleNode",
+    "System\.Xml\.XPath"
   )
-  $linkXml = Join-Path $repoRoot "Tool~/link.xml.template"
-  if (-not (Test-Path $linkXml)) { throw ("template missing: " + $linkXml) }
-  $content = Get-Content $linkXml -Raw
-  $miss = @($expect | Where-Object { $content -notmatch [regex]::Escape($_) })
-  if ($miss.Count -gt 0) {
-    Write-Host ("  FAIL: link.xml.template missing namespaces: " + ($miss -join ", "))
+  $hits = @()
+  foreach ($d in ($HotUpdateDirs -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
+    $full = Join-Path $repoRoot $d
+    Get-ChildItem $full -Recurse -Filter "*.cs" -ErrorAction SilentlyContinue | ForEach-Object {
+      foreach ($p in $pats) {
+        Select-String -Path $_.FullName -Pattern $p -ErrorAction SilentlyContinue | ForEach-Object {
+          $hits += ($_.Path.Substring($repoRoot.Length + 1) + ":" + $_.LineNumber + "  " + $_.Line.Trim())
+        }
+      }
+    }
+  }
+  if ($hits.Count -gt 0) {
+    Write-Host ("  FAIL: " + $hits.Count + " XPath-selector usage(s) in hot-update code (use Descendants instead):")
+    $hits | Select-Object -First 10 | ForEach-Object { Write-Host ("    " + $_) }
     $script:fail++
   } else {
-    Write-Host "  PASS: link.xml.template covers all System.Private.Xml namespaces"
+    Write-Host "  PASS: no XPath-selector dependency in hot-update code"
   }
 }
 
