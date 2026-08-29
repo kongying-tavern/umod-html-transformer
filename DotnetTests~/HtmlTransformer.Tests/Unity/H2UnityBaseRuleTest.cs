@@ -90,6 +90,9 @@ namespace HtmlTransformer.Tests.Unity
                 {"a→link 带 href", "<a href=\"u\">x</a>", "<link=u>x</link>"},
                 {"a→link 无 href 解包", "<a>x</a>", "x"},
                 {"ruby→r", "<ruby>x<rt>d</rt></ruby>", "<r>x<rt>d</rt></r>"},
+                {"多标签交错保序(strong 与 b)", "<strong>1</strong><b>2</b><strong>3</strong>", "<b>1</b><b>2</b><b>3</b>"},
+                {"多标签嵌套保序", "<strong><b>x</b></strong>", "<b><b>x</b></b>"},
+                {"em 与 strong 交错(不同映射组)", "<em>1</em><strong>2</strong><i>3</i>", "<i>1</i><b>2</b><i>3</i>"},
             };
 
         [Theory]

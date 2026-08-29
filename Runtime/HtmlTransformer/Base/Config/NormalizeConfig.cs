@@ -1,4 +1,5 @@
 using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -58,10 +59,9 @@ namespace HtmlTransformer.Base.Config
                     continue;
                 }
 
-                // 后代标签查询: union 语义(去重、保文档序)
-                var nodes = findTagNames
-                    .SelectMany(tag => doc.DocumentNode.Descendants(tag))
-                    .Distinct()
+                // 后代标签查询: 单次遍历 + 名过滤(天然文档序; SelectMany 会按 tag 分组破坏文档序)
+                var nodes = doc.DocumentNode.Descendants()
+                    .Where(n => findTagNames.Contains(n.Name, StringComparer.OrdinalIgnoreCase))
                     .ToList();
                 if (nodes.Count > 0)
                 {
